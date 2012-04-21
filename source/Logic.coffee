@@ -1,4 +1,4 @@
-define "Logic", [ "Input", "Entities", "Physics" ], ( Input, Entities, Physics ) ->
+define "Logic", [ "Input", "Entities", "Physics", "Vec2" ], ( Input, Entities, Physics, Vec2 ) ->
 	nextDeathSatelliteId = 0
 
 	entityFactories =
@@ -22,6 +22,18 @@ define "Logic", [ "Input", "Entities", "Physics" ], ( Input, Entities, Physics )
 				components:
 					"bodies"  : body
 					"imageIds": "images/skull.png"
+
+	G = 5e4
+	applyGravity = ( bodies ) ->
+		for entityId, body of bodies
+			squaredDistance = Vec2.squaredLength( body.position )
+			forceMagnitude = G * body.mass / squaredDistance
+
+			force = Vec2.copy( body.position )
+			Vec2.scale( force, -1 )
+			Vec2.unit( force )
+			Vec2.scale( force, forceMagnitude )
+			body.forces.push( force )
 
 
 
@@ -66,4 +78,7 @@ define "Logic", [ "Input", "Entities", "Physics" ], ( Input, Entities, Physics )
 				velocity: [ 10, 0 ] } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
-			
+			applyGravity( gameState.components.bodies )
+			Physics.update(
+				gameState.components.bodies,
+				passedTimeInS )
