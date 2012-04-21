@@ -17,7 +17,11 @@ define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input
 		# Images that you want to use should be defined here. They will be
 		# loaded by noop's Loader module and passed into the initGame function.
 		imagePaths: [
-			"images/star.png" ]
+			"images/coin.png"
+			"images/red-cross.png"
+			"images/skull.png"
+			"images/star.png"
+			"images/tiny-world.png" ]
 
 		# Will be called by Loader when the images have been loaded.
 		initGame: ( images ) ->
