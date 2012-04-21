@@ -20,7 +20,8 @@ define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input
 			"images/coin.png"
 			"images/red-cross.png"
 			"images/skull.png"
-			"images/star.png"
+			"images/star1.png"
+			"images/star2.png"
 			"images/tiny-world.png" ]
 
 		# Will be called by Loader when the images have been loaded.
