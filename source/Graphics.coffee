@@ -19,6 +19,14 @@ define "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 
 				renderState.renderables.push( renderable )
 
+			for entityId, body of gameState.components.bodies
+				imageId = gameState.components.imageIds[ entityId ]
+
+				renderable = Rendering.createRenderable( "image", imageId )
+				renderable.position = Vec2.copy( body.position )
+
+				renderState.renderables.push( renderable )
+
 
 			Camera.transformRenderables(
 				renderState.camera,

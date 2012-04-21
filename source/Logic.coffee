@@ -1,16 +1,29 @@
-define "Logic", [ "Input", "Entities" ], ( Input, Entities ) ->
-	nextEntityId = 0
+define "Logic", [ "Input", "Entities", "Physics" ], ( Input, Entities, Physics ) ->
+	nextDeathSatelliteId = 0
 
 	entityFactories =
 		"tinyPlanet": ( args ) ->
-			id = nextEntityId
-			nextEntityId += 1
+			entity =
+				id: "tinyPlanet"
+				components:
+					"positions": [ 0, 0 ]
+					"imageIds" : "images/tiny-world.png"
+
+		"deathSatellite": ( args ) ->
+			body = Physics.createBody()
+			body.position = args.position
+			body.velocity = args.velocity
+
+			id = "deathSatellite#{ nextDeathSatelliteId }"
+			nextDeathSatelliteId += 1
 
 			entity =
 				id: id
 				components:
-					"positions": [ 0, 0 ]
-					"imageIds" : "images/tiny-world.png"
+					"bodies"  : body
+					"imageIds": "images/skull.png"
+
+
 
 	# There are functions for creating and destroying entities in the Entities
 	# module. We will mostly use shortcuts however. They are declared here and
@@ -28,6 +41,7 @@ define "Logic", [ "Input", "Entities" ], ( Input, Entities ) ->
 				# separately.
 				components:
 					positions: {}
+					bodies   : {}
 					imageIds : {}
 
 		initGameState: ( gameState ) ->
@@ -44,7 +58,12 @@ define "Logic", [ "Input", "Entities" ], ( Input, Entities ) ->
 					gameState.components,
 					entityId )
 
+
 			createEntity( "tinyPlanet", {} )
+
+			createEntity( "deathSatellite", {
+				position: [ 0, -100 ]
+				velocity: [ 10, 0 ] } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			
