@@ -28,7 +28,6 @@ define "Logic", [ "Input", "Entities" ], ( Input, Entities ) ->
 				# separately.
 				components:
 					positions: {}
-					movements: {}
 					imageIds : {}
 
 		initGameState: ( gameState ) ->
@@ -48,9 +47,4 @@ define "Logic", [ "Input", "Entities" ], ( Input, Entities ) ->
 			createEntity( "tinyPlanet", {} )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
-			# for entityId, position of gameState.components.positions
-			# 	movement = gameState.components.movements[ entityId ]
-
-			# 	angle = timeInS * movement.speed
-			# 	position[ 0 ] = movement.radius * Math.cos( angle )
-			# 	position[ 1 ] = movement.radius * Math.sin( angle )
+			
