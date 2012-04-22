@@ -18,7 +18,9 @@ define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input
 		# loaded by noop's Loader module and passed into the initGame function.
 		imagePaths: [
 			"images/coin.png"
+			"images/green-rocket.png"
 			"images/red-cross.png"
+			"images/red-rocket.png"
 			"images/rocket.png"
 			"images/skull.png"
 			"images/star1.png"
