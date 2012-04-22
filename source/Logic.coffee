@@ -151,6 +151,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					velocity: body.velocity,
 					player  : rocket.player } )
 				destroyEntity( entityId )
+				player.fuel = 0
 
 		for entityId, player of players
 			rocketId = "#{ player.color }Rocket"
