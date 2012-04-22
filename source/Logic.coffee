@@ -61,7 +61,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 			rocket =
 				accelerates: false
-				payload    : "deathSatellite"
+				payload    : args.payload
 
 			id = "#{ args.player }Rocket"
 
@@ -75,12 +75,15 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 		"player": ( args ) ->
 			player =
 				color          : args.color
+				selectedIndex  : 0
 				selectedPayload: "deathSatellite"
+				justSelected   : false
 
 			entity =
 				id: "#{ args.color }Player"
 				components:
 					players: player
+
 
 	inputMappings =
 		"redRocket":
@@ -95,10 +98,18 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			"down" : "s"
 		"redPlayer":
 			"launch": "ctrl"
+			"left"  : "left arrow"
+			"right" : "right arrow"
 		"greenPlayer":
 			"launch": "q"
+			"left"  : "a"
+			"right" : "d"
+
 	angularVelocity = 2
 	accelerationForce = 5
+
+	payloadSelection = [ "deathSatellite", "repairSatellite", "scoreSatellite" ]
+
 	applyInput = ( currentInput, bodies, rockets, players, createEntity, destroyEntity ) ->
 		for entityId, rocket of rockets
 			body    = bodies[ entityId ]
@@ -126,14 +137,31 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				destroyEntity( entityId )
 
 		for entityId, player of players
-			mapping = inputMappings[ entityId ]
+			rocketId = "#{ player.color }Rocket"
+			mapping  = inputMappings[ entityId ]
 
-			if Input.isKeyDown( currentInput, mapping[ "launch" ] )
-				unless bodies[ "#{ player.color }Rocket" ]?
+			unless rockets[ rocketId ]?
+				if Input.isKeyDown( currentInput, mapping[ "launch" ] )
 					createEntity( "rocket", {
 						position: [ 0, -50 ]
 						velocity: [ 30, 0 ]
-						player  : player.color } )
+						player  : player.color,
+						payload : player.selectedPayload } )
+
+				if player.justSelected
+					unless Input.isKeyDown( currentInput, mapping[ "right" ] ) || Input.isKeyDown( currentInput, mapping[ "left" ] )
+						player.justSelected = false
+				else if Input.isKeyDown( currentInput, mapping[ "right" ] ) || Input.isKeyDown( currentInput, mapping[ "left" ] )
+					if Input.isKeyDown( currentInput, mapping[ "right" ] )
+						player.selectedIndex += 1
+					if Input.isKeyDown( currentInput, mapping[ "left" ] )
+						player.selectedIndex -= 1
+
+					player.selectedIndex = ( player.selectedIndex + payloadSelection.length ) % payloadSelection.length
+					player.selectedPayload = payloadSelection[ player.selectedIndex ]
+					player.justSelected = true
+
+
 
 	G = 5e4
 	applyGravity = ( bodies ) ->
