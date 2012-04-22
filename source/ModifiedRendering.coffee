@@ -39,14 +39,18 @@ define "ModifiedRendering", [], ->
 
 			context.strokeStyle = ellipse.color
 
-			context.rotate( renderable.orientation )
+			context.translate(
+				renderable.position[ 0 ],
+				renderable.position[ 1 ] )
+			context.rotate(
+				renderable.orientation )
 			context.scale(
 				ellipse.semiMajorAxis / ellipse.semiMinorAxis,
 				1 )
 			context.beginPath()
 			context.arc(
-				renderable.position[ 0 ],
-				renderable.position[ 1 ],
+				0,
+				0,
 				ellipse.semiMinorAxis,
 				0,
 				2*Math.PI,
