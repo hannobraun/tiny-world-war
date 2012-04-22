@@ -13,14 +13,6 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 			renderState.renderables.length = 0
 
-			# renderable = Rendering.createRenderable( "ellipse" )
-			# renderable.position = [ 0, 0 ]
-			# renderable.orientation = 0
-			# renderable.ellipse =
-			# 	semiMajorAxis: 200
-			# 	semiMinorAxis: 100
-			# renderState.renderables.push( renderable )
-
 			for entityId, rocket of gameState.components.rockets
 				body = gameState.components.bodies[ entityId ]
 
@@ -53,12 +45,6 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 				orientation = Math.atan2(
 					focalToCenter[ 1 ],
 					focalToCenter[ 0 ] )
-
-				unless window.c?
-					window.c = 0
-				if window.c % 60 == 0 && entityId == "redRocket"
-					console.log( focalToCenter )
-				window.c += 1 if entityId == "redRocket"
 
 				color = "rgb(255,0,0)" if entityId == "redRocket"
 				color = "rgb(0,255,0)" if entityId == "greenRocket"

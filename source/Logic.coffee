@@ -117,6 +117,18 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			Vec2.scale( force, forceMagnitude )
 			body.forces.push( force )
 
+	planetSize     = 32
+	halfPlanetSize = planetSize / 2
+	checkPlanetCollision = ( bodies, destroyEntity ) ->
+		for entityId, body of bodies
+			if (
+				body.position[ 0 ] < halfPlanetSize &&
+				body.position[ 0 ] > -halfPlanetSize &&
+				body.position[ 1 ] < halfPlanetSize &&
+				body.position[ 1 ] > -halfPlanetSize )
+
+				destroyEntity( entityId )
+
 	# There are functions for creating and destroying entities in the Entities
 	# module. We will mostly use shortcuts however. They are declared here and
 	# defined further down in initGameState.
@@ -185,3 +197,6 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			Physics.update(
 				gameState.components.bodies,
 				passedTimeInS )
+			checkPlanetCollision(
+				gameState.components.bodies,
+				destroyEntity )
