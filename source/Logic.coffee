@@ -1,7 +1,6 @@
 define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" ], ( Input, Entities, Physics, Vec2, Transform2d ) ->
 	nextDeathSatelliteId  = 0
 	nextRepairSatelliteId = 0
-	nextRocketId          = 0
 	nextScoreSatelliteId  = 0
 
 	entityFactories =
@@ -65,7 +64,6 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				payload    : "deathSatellite"
 
 			id = "#{ args.player }Rocket"
-			nextRocketId += 1
 
 			entity =
 				id: id
@@ -73,6 +71,15 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					"bodies"  : body
 					"rockets" : rocket
 					"imageIds": "images/#{ args.player }-rocket.png"
+
+		"player": ( args ) ->
+			player =
+				color: args.color
+
+			entity =
+				id: "#{ args.color }Player"
+				components:
+					players: player
 
 	inputMappings =
 		"redRocket":
@@ -85,9 +92,13 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			"right": "d"
 			"up"   : "w"
 			"down" : "s"
+		"redPlayer":
+			"launch": "ctrl"
+		"greenPlayer":
+			"launch": "q"
 	angularVelocity = 2
 	accelerationForce = 5
-	applyInput = ( currentInput, bodies, rockets, createEntity, destroyEntity ) ->
+	applyInput = ( currentInput, bodies, rockets, players, createEntity, destroyEntity ) ->
 		for entityId, rocket of rockets
 			body    = bodies[ entityId ]
 			mapping = inputMappings[ entityId ]
@@ -112,6 +123,16 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					position: body.position,
 					velocity: body.velocity } )
 				destroyEntity( entityId )
+
+		for entityId, player of players
+			mapping = inputMappings[ entityId ]
+
+			if Input.isKeyDown( currentInput, mapping[ "launch" ] )
+				unless bodies[ "#{ player.color }Rocket" ]?
+					createEntity( "rocket", {
+						position: [ 0, -50 ]
+						velocity: [ 30, 0 ]
+						player  : player.color } )
 
 	G = 5e4
 	applyGravity = ( bodies ) ->
@@ -156,6 +177,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					bodies   : {}
 					imageIds : {}
 					rockets  : {}
+					players  : {}
 
 		initGameState: ( gameState ) ->
 			# These are the shortcuts we will use for creating and destroying
@@ -174,32 +196,38 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 			createEntity( "tinyPlanet", {} )
 
-			createEntity( "deathSatellite", {
-				position: [ 0, -100 ]
-				velocity: [ 20, 0 ] } )
+			createEntity( "player", {
+				color: "red" } )
+			createEntity( "player", {
+				color: "green" } )
 
-			createEntity( "repairSatellite", {
-				position: [ 0, -150 ]
-				velocity: [ 15, 0 ] } )
+			# createEntity( "deathSatellite", {
+			# 	position: [ 0, -100 ]
+			# 	velocity: [ 20, 0 ] } )
 
-			createEntity( "scoreSatellite", {
-				position: [ 0, -200 ]
-				velocity: [ 15, 0 ] } )
+			# createEntity( "repairSatellite", {
+			# 	position: [ 0, -150 ]
+			# 	velocity: [ 15, 0 ] } )
 
-			createEntity( "rocket", {
-				position: [ 0, -50 ]
-				velocity: [ 30, 0 ]
-				player  : "red" } )
-			createEntity( "rocket", {
-				position: [ 0, 50 ]
-				velocity: [ -30, 0 ]
-				player  : "green" } )
+			# createEntity( "scoreSatellite", {
+			# 	position: [ 0, -200 ]
+			# 	velocity: [ 15, 0 ] } )
+
+			# createEntity( "rocket", {
+			# 	position: [ 0, -50 ]
+			# 	velocity: [ 30, 0 ]
+			# 	player  : "red" } )
+			# createEntity( "rocket", {
+			# 	position: [ 0, 50 ]
+			# 	velocity: [ -30, 0 ]
+			# 	player  : "green" } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			applyInput(
 				currentInput,
 				gameState.components.bodies,
 				gameState.components.rockets,
+				gameState.components.players,
 				createEntity,
 				destroyEntity )
 			applyGravity(
