@@ -119,18 +119,18 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2" ], ( Input, Ent
 
 			createEntity( "deathSatellite", {
 				position: [ 0, -100 ]
-				velocity: [ 10, 0 ] } )
+				velocity: [ 20, 0 ] } )
 
 			createEntity( "repairSatellite", {
 				position: [ 0, -150 ]
 				velocity: [ 15, 0 ] } )
 
 			createEntity( "scoreSatellite", {
-				position: [ 0, -50 ]
-				velocity: [ 20, 0 ] } )
+				position: [ 0, -200 ]
+				velocity: [ 15, 0 ] } )
 
 			createEntity( "rocket", {
-				position: [ 0, -20 ]
+				position: [ 0, -50 ]
 				velocity: [ 30, 0 ] } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
