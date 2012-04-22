@@ -49,10 +49,11 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 			entity =
 				id: id
 				components:
-					"bodies"    : body
-					"imageIds"  : "images/red-cross.png"
-					"satellites": satellite
-					"shapes"    : "satellite"
+					"bodies"          : body
+					"imageIds"        : "images/red-cross.png"
+					"satellites"      : satellite
+					"repairSatellites": {}
+					"shapes"          : "satellite"
 
 		"scoreSatellite": ( args ) ->
 			body = Physics.createBody()
@@ -281,8 +282,9 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 
 		collisions
 
-	amountOfDeath = 10
-	handleCollisions = ( collisions, satellites, deathSatellites, bodies, passedTimeInS ) ->
+	amountOfDeath  = 10
+	amountOfRepair = 5
+	handleCollisions = ( collisions, satellites, deathSatellites, repairSatellites, bodies, passedTimeInS ) ->
 		for entityId, satellite of satellites
 			satellite.isActive = false
 
@@ -295,7 +297,18 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 			bodyB = bodies[ collision.entityB ]
 
 			if satelliteA.player == satelliteB.player
-				# repair satellites
+				if repairSatellites[ collision.entityA ]?
+					satelliteA.isActive = true
+					satelliteA.target = bodyB.position
+					satelliteB.health += amountOfRepair * passedTimeInS
+					if satelliteB.health > satelliteB.maxHealth
+						satelliteB.health = satelliteB.maxHealth
+				if repairSatellites[ collision.entityB ]?
+					satelliteB.isActive = true
+					satelliteB.target = bodyA.position
+					satelliteA.health += amountOfRepair * passedTimeInS
+					if satelliteA.health > satelliteA.maxHealth
+						satelliteA.health = satelliteA.maxHealth
 			else
 				if deathSatellites[ collision.entityA ]?
 					satelliteA.isActive = true
@@ -328,15 +341,16 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 				# Game entities are made up of components. Those are stored
 				# separately.
 				components:
-					positions      : {}
-					bodies         : {}
-					imageIds       : {}
-					rockets        : {}
-					players        : {}
-					satellites     : {}
-					shapes         : {}
-					deathSatellites: {}
-					scoreSatellites: {}
+					positions       : {}
+					bodies          : {}
+					imageIds        : {}
+					rockets         : {}
+					players         : {}
+					satellites      : {}
+					shapes          : {}
+					deathSatellites : {}
+					scoreSatellites : {}
+					repairSatellites: {}
 
 		initGameState: ( gameState ) ->
 			# These are the shortcuts we will use for creating and destroying
@@ -393,5 +407,6 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 				collisions,
 				gameState.components.satellites,
 				gameState.components.deathSatellites,
+				gameState.components.repairSatellites,
 				gameState.components.bodies,
 				passedTimeInS )
