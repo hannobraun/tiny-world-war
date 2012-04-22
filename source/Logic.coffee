@@ -67,7 +67,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				id: id
 				components:
 					"bodies": body
-					"imageIds": "images/rocket.png"
+					"imageIds": "images/#{ args.player }-rocket.png"
 
 	inputMappings =
 		"redRocket":
