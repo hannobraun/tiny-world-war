@@ -7,7 +7,7 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 			header       : "Red"
 			color        : "rgb(255,0,0)"
 			payloadKeys  : "left/right"
-			launchKey    : "ctrl"
+			launchKey    : "space"
 			leftRightKeys: "left/right"
 			accelerateKey: "up"
 			deployKey    : "down"

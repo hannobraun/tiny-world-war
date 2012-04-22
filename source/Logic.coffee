@@ -151,7 +151,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 			"up"   : "w"
 			"down" : "s"
 		"redPlayer":
-			"launch": "ctrl"
+			"launch": "space"
 			"left"  : "left arrow"
 			"right" : "right arrow"
 		"greenPlayer":

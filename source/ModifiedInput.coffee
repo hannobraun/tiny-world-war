@@ -116,7 +116,10 @@ define "ModifiedInput", [], ->
 			currentInput = {}
 
 			window.addEventListener "keydown", ( keyDownEvent ) ->
-				if keyDownEvent.keyCode == keyCodesByName[ "down arrow" ]
+				if (
+					keyDownEvent.keyCode == keyCodesByName[ "down arrow" ] ||
+					keyDownEvent.keyCode == keyCodesByName[ "space" ] )
+
 					keyDownEvent.preventDefault()
 				currentInput[ keyNamesByCode[ keyDownEvent.keyCode ] ] = true
 
