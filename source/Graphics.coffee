@@ -229,7 +229,11 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 					renderable.size = [ 16, 16 ]
 					renderState.renderables.push( renderable )
 
+					launchText = if player.fuel >= player.minFuel
+						"Enough fuel? Press #{ ui.launchKey }!"
+					else
+						"Not enough fuel!"
 					renderable = Rendering.createRenderable( "text" )
 					renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 95 ]
-					renderable.text = "Enough fuel? Press #{ ui.launchKey }!"
+					renderable.text = launchText
 					renderState.renderables.push( renderable )

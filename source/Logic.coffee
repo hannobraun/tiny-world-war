@@ -91,6 +91,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 				fuel   : 0
 				maxFuel: 100
+				minFuel: 20
 
 			entity =
 				id: "#{ args.color }Player"
@@ -156,7 +157,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			mapping  = inputMappings[ entityId ]
 
 			unless rockets[ rocketId ]?
-				if Input.isKeyDown( currentInput, mapping[ "launch" ] )
+				if Input.isKeyDown( currentInput, mapping[ "launch" ] ) && player.fuel >= player.minFuel
 					createEntity( "rocket", {
 						position: [ 0, -50 ]
 						velocity: [ 30, 0 ]
