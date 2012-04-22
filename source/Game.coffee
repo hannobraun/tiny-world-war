@@ -19,6 +19,7 @@ define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input
 		imagePaths: [
 			"images/coin.png"
 			"images/red-cross.png"
+			"images/rocket.png"
 			"images/skull.png"
 			"images/star1.png"
 			"images/star2.png"
@@ -26,6 +27,8 @@ define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input
 
 		# Will be called by Loader when the images have been loaded.
 		initGame: ( images ) ->
+			images[ "images/rocket.png" ].orientationOffset = Math.PI / 2
+
 			renderData =
 				"image": images
 
