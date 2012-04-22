@@ -1,4 +1,4 @@
-define "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 ) ->
+define "Graphics", [ "Rendering", "Camera", "Vec2", "Transform2d" ], ( Rendering, Camera, Vec2, Transform2d ) ->
 	module =
 		createRenderState: ->
 			renderState =
@@ -27,6 +27,25 @@ define "Graphics", [ "Rendering", "Camera", "Vec2" ], ( Rendering, Camera, Vec2 
 				renderable.orientation = body.orientation
 
 				renderState.renderables.push( renderable )
+
+			for entityId, rocket of gameState.components.rockets
+				body = gameState.components.bodies[ entityId ]
+
+				if rocket.accelerates
+					rotationTransform = Transform2d.rotationMatrix(
+						body.orientation )
+					position = [ -13, 0 ]
+					Vec2.applyTransform( position, rotationTransform )
+					Vec2.add( position, body.position )
+
+					renderable = Rendering.createRenderable(
+						"image",
+						"images/exhaust.png" )
+					renderable.position    = position
+					renderable.orientation = body.orientation
+
+					renderState.renderables.push( renderable )
+					 
 
 
 			Camera.transformRenderables(

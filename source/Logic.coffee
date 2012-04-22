@@ -60,13 +60,17 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			body.velocity    = args.velocity
 			body.orientation = -Math.PI / 2
 
+			rocket =
+				accelerates: false
+
 			id = "#{ args.player }Rocket"
 			nextRocketId += 1
 
 			entity =
 				id: id
 				components:
-					"bodies": body
+					"bodies"  : body
+					"rockets" : rocket
 					"imageIds": "images/#{ args.player }-rocket.png"
 
 	inputMappings =
@@ -80,22 +84,25 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			"up"   : "w"
 	angularVelocity = 2
 	accelerationForce = 5
-	applyInput = ( currentInput, bodies ) ->
-		for rocketId, mapping of inputMappings
-			rocket = bodies[ rocketId ]
+	applyInput = ( currentInput, bodies, rockets ) ->
+		for entityId, rocket of rockets
+			body    = bodies[ entityId ]
+			mapping = inputMappings[ entityId ]
 
-			if rocket?
-				rocket.angularVelocity = 0
-				if Input.isKeyDown( currentInput, mapping[ "left" ] )
-					rocket.angularVelocity = -angularVelocity
-				if Input.isKeyDown( currentInput, mapping[ "right" ] )
-					rocket.angularVelocity = angularVelocity
+			body.angularVelocity = 0
+			if Input.isKeyDown( currentInput, mapping[ "left" ] )
+				body.angularVelocity = -angularVelocity
+			if Input.isKeyDown( currentInput, mapping[ "right" ] )
+				body.angularVelocity = angularVelocity
 
-				if Input.isKeyDown( currentInput, mapping[ "up" ] )
-					force = [ accelerationForce, 0 ]
-					rotationTransform = Transform2d.rotationMatrix( rocket.orientation )
-					Vec2.applyTransform( force, rotationTransform )
-					rocket.forces.push( force )
+			rocket.accelerates = false
+			if Input.isKeyDown( currentInput, mapping[ "up" ] )
+				force = [ accelerationForce, 0 ]
+				rotationTransform = Transform2d.rotationMatrix( body.orientation )
+				Vec2.applyTransform( force, rotationTransform )
+				body.forces.push( force )
+
+				rocket.accelerates = true
 
 
 	G = 5e4
@@ -128,6 +135,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					positions: {}
 					bodies   : {}
 					imageIds : {}
+					rockets  : {}
 
 		initGameState: ( gameState ) ->
 			# These are the shortcuts we will use for creating and destroying
@@ -170,7 +178,8 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			applyInput(
 				currentInput,
-				gameState.components.bodies )
+				gameState.components.bodies,
+				gameState.components.rockets )
 			applyGravity(
 				gameState.components.bodies )
 			Physics.update(

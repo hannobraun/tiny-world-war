@@ -18,6 +18,7 @@ define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input
 		# loaded by noop's Loader module and passed into the initGame function.
 		imagePaths: [
 			"images/coin.png"
+			"images/exhaust.png"
 			"images/green-rocket.png"
 			"images/red-cross.png"
 			"images/red-rocket.png"
@@ -29,7 +30,9 @@ define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input
 
 		# Will be called by Loader when the images have been loaded.
 		initGame: ( images ) ->
-			images[ "images/rocket.png" ].orientationOffset = Math.PI / 2
+			images[ "images/green-rocket.png" ].orientationOffset = Math.PI / 2
+			images[ "images/red-rocket.png"   ].orientationOffset = Math.PI / 2
+			images[ "images/exhaust.png"      ].orientationOffset = Math.PI / 2
 
 			renderData =
 				"image": images
