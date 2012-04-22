@@ -120,6 +120,17 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 					renderState.renderables.push( renderable )
 
 			for entityId, satellite of gameState.components.satellites
+				if satellite.isActive
+					body    = gameState.components.bodies[ entityId ]
+					shapeId = gameState.components.shapes[ entityId ]
+
+					renderable = Rendering.createRenderable( "line" )
+					renderable.start = body.position
+					renderable.end   = satellite.target
+
+					renderState.renderables.push( renderable )
+
+			for entityId, satellite of gameState.components.satellites
 				body = gameState.components.bodies[ entityId ]
 				ui   = playerUI[ satellite.player ]
 

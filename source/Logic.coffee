@@ -282,16 +282,25 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 		collisions
 
 	amountOfDeath = 10
-	handleCollisions = ( collisions, satellites, deathSatellites, passedTimeInS ) ->
+	handleCollisions = ( collisions, satellites, deathSatellites, bodies, passedTimeInS ) ->
+		for entityId, satellite of satellites
+			satellite.isActive = false
+
 		for collision in collisions
 			satelliteA = satellites[ collision.entityA ]
 			satelliteB = satellites[ collision.entityB ]
+			bodyA = bodies[ collision.entityA ]
+			bodyB = bodies[ collision.entityB ]
 
 			if deathSatellites[ collision.entityA ]?
+				satelliteA.isActive = true
+				satelliteA.target = bodyB.position
 				satelliteB.health -= amountOfDeath * passedTimeInS
 				if satelliteB.health <= 0
 					destroyEntity( collision.entityB )
 			if deathSatellites[ collision.entityB ]?
+				satellite.isActive = true
+				satelliteB.target = bodyA.position
 				satelliteA.health -= amountOfDeath * passedTimeInS
 				if satelliteA.health <= 0
 					destroyEntity( collision.entityA )
@@ -376,4 +385,5 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 				collisions,
 				gameState.components.satellites,
 				gameState.components.deathSatellites,
+				gameState.components.bodies,
 				passedTimeInS )

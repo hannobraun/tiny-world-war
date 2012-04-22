@@ -17,6 +17,7 @@ define "ModifiedRendering", [], ->
 		"circle": ( shapes, context, renderable ) ->
 			shape = shapes[ renderable.resourceId ]
 
+			context.strokeStyle = renderable.color || "rgb(255,255,255)"
 			context.translate(
 				renderable.position[ 0 ],
 				renderable.position[ 1 ] )
@@ -73,6 +74,14 @@ define "ModifiedRendering", [], ->
 				renderable.position[ 1 ],
 				renderable.size[ 0 ],
 				renderable.size[ 1 ] )
+
+		"line": ( _, context, renderable ) ->
+			context.strokeStyle = renderable.color || "rgb(255,255,255)"
+			context.beginPath()
+			context.moveTo( renderable.start[ 0 ], renderable.start[ 1 ] )
+			context.lineTo( renderable.end[ 0 ], renderable.end[ 1 ] )
+			context.closePath()
+			context.stroke()
 
 		"text": ( _, context, renderable ) ->
 			context.fillStyle = renderable.color || "rgb(0,0,0)"

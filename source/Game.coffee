@@ -40,7 +40,8 @@ define "Game", [ "ModifiedRendering", "Input", "Logic", "Graphics", "Collisions"
 					offset: [ 0, 0 ]
 
 			renderData =
-				"image": images
+				"image" : images
+				"circle": shapeData
 
 			display      = Rendering.createDisplay()
 			currentInput = Input.createCurrentInput()
