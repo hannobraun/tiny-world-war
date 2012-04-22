@@ -1,28 +1,21 @@
-# noop skeleton project
+# Tiny World War
 
 ## What is it?
 
-It's a minimal example project using the
-[noop game framework](https://github.com/hbraun/noop). If you want to get
-started with the framework, just clone this repository and start adding your own
-code.
+Tiny World War is an original real-time strategy game with gameplay based on
+orbital mechanics.
 
-Like noop itself, this skeleton project is written in CoffeeScript. If you want
-to use JavaScript instead, it shouldn't be too hard to adapt the project.
+It was written within 48 hours as part of [Ludum Dare](http://ludumdare.com) #23.
 
 
-## How do I get started?
+## Who did it?
 
-1. Clone this repository.
-2. Install [Node.js](http://nodejs.org)
-3. Install [CoffeeScript](http://coffeescript.org) using npm.
-4. Execute ./develop
-5. Open index.html and index-test.html in a browser.
-6. Write code!
+Hanno Braun
+[mail@hannobraun.com](mailto:mail@hannobraun.com)
+[http://hannobraun.com](http://hannobraun.com)
 
 
-## Where can I learn more about noop?
+## How was it done?
 
-Right now there's barely any documentation. Until any shows up at the
-[noop repository](https://github.com/hbraun/noop) the code itself is your best
-source of information.
+This game was written with the help of the 
+[noop game framework](https://github.com/hbraun/noop). Check it out, it's free.
