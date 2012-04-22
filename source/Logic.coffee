@@ -1,5 +1,8 @@
 define "Logic", [ "Input", "Entities", "Physics", "Vec2" ], ( Input, Entities, Physics, Vec2 ) ->
-	nextDeathSatelliteId = 0
+	nextDeathSatelliteId  = 0
+	nextRepairSatelliteId = 0
+	nextRocketId          = 0
+	nextScoreSatelliteId  = 0
 
 	entityFactories =
 		"tinyPlanet": ( args ) ->
@@ -23,6 +26,49 @@ define "Logic", [ "Input", "Entities", "Physics", "Vec2" ], ( Input, Entities, P
 					"bodies"  : body
 					"imageIds": "images/skull.png"
 
+		"repairSatellite": ( args ) ->
+			body = Physics.createBody()
+			body.position = args.position
+			body.velocity = args.velocity
+
+			id = "repairSatellite#{ nextRepairSatelliteId }"
+			nextRepairSatelliteId += 1
+
+			entity =
+				id: id
+				components:
+					"bodies"  : body
+					"imageIds": "images/red-cross.png"
+
+		"scoreSatellite": ( args ) ->
+			body = Physics.createBody()
+			body.position = args.position
+			body.velocity = args.velocity
+
+			id = "scoreSatellite#{ nextScoreSatelliteId }"
+			nextScoreSatelliteId += 1
+
+			entity =
+				id: id
+				components:
+					"bodies"  : body
+					"imageIds": "images/coin.png"
+
+		"rocket": ( args ) ->
+			body = Physics.createBody()
+			body.position    = args.position
+			body.velocity    = args.velocity
+			body.orientation = -Math.PI / 2
+
+			id = "rocket#{ nextRocketId }"
+			nextRocketId += 1
+
+			entity =
+				id: id
+				components:
+					"bodies": body
+					"imageIds": "images/rocket.png"
+
 	G = 5e4
 	applyGravity = ( bodies ) ->
 		for entityId, body of bodies
@@ -34,8 +80,6 @@ define "Logic", [ "Input", "Entities", "Physics", "Vec2" ], ( Input, Entities, P
 			Vec2.unit( force )
 			Vec2.scale( force, forceMagnitude )
 			body.forces.push( force )
-
-
 
 	# There are functions for creating and destroying entities in the Entities
 	# module. We will mostly use shortcuts however. They are declared here and
@@ -76,6 +120,18 @@ define "Logic", [ "Input", "Entities", "Physics", "Vec2" ], ( Input, Entities, P
 			createEntity( "deathSatellite", {
 				position: [ 0, -100 ]
 				velocity: [ 10, 0 ] } )
+
+			createEntity( "repairSatellite", {
+				position: [ 0, -150 ]
+				velocity: [ 15, 0 ] } )
+
+			createEntity( "scoreSatellite", {
+				position: [ 0, -50 ]
+				velocity: [ 20, 0 ] } )
+
+			createEntity( "rocket", {
+				position: [ 0, -20 ]
+				velocity: [ 30, 0 ] } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			applyGravity( gameState.components.bodies )
