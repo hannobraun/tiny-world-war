@@ -1,4 +1,7 @@
 define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d", "Collisions" ], ( Input, Entities, Physics, Vec2, Transform2d, Collisions ) ->
+	G = 5e4
+	mu = G
+
 	nextDeathSatelliteId  = 0
 	nextRepairSatelliteId = 0
 	nextScoreSatelliteId  = 0
@@ -81,7 +84,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 			body = Physics.createBody()
 			body.position    = args.position
 			body.velocity    = args.velocity
-			body.orientation = -Math.PI / 2
+			body.orientation = args.orientation
 
 			rocket =
 				accelerates: false
@@ -143,6 +146,8 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 
 	payloadSelection = [ "deathSatellite", "repairSatellite", "scoreSatellite" ]
 
+	initialRocketDistance = 50
+
 	applyInput = ( currentInput, bodies, rockets, players, createEntity, destroyEntity ) ->
 		for entityId, rocket of rockets
 			body    = bodies[ entityId ]
@@ -178,11 +183,23 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 
 			unless rockets[ rocketId ]?
 				if Input.isKeyDown( currentInput, mapping[ "launch" ] ) && player.fuel >= player.minFuel
+					orbitAngle  = Math.random() * Math.PI * 2
+					orientation = orbitAngle + Math.PI/2
+
+					rotationTransform = Transform2d.rotationMatrix( orbitAngle )
+					position = [ initialRocketDistance, 0 ]
+					Vec2.applyTransform( position, rotationTransform )
+
+					rotationTransform = Transform2d.rotationMatrix( orientation )
+					velocity = [ 30, 0 ]
+					Vec2.applyTransform( velocity, rotationTransform )
+
 					createEntity( "rocket", {
-						position: [ 0, -50 ]
-						velocity: [ 30, 0 ]
-						player  : player.color,
-						payload : player.selectedPayload } )
+						position   : position
+						velocity   : velocity
+						orientation: orientation
+						player     : player.color,
+						payload    : player.selectedPayload } )
 
 				if player.justSelected
 					unless Input.isKeyDown( currentInput, mapping[ "right" ] ) || Input.isKeyDown( currentInput, mapping[ "left" ] )
@@ -198,8 +215,6 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 					player.justSelected = true
 
 
-
-	G = 5e4
 	applyGravity = ( bodies ) ->
 		for entityId, body of bodies
 			squaredDistance = Vec2.squaredLength( body.position )
