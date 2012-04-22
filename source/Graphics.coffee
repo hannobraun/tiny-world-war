@@ -118,6 +118,19 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 					renderable.orientation = body.orientation
 
 					renderState.renderables.push( renderable )
+
+			for entityId, satellite of gameState.components.satellites
+				body = gameState.components.bodies[ entityId ]
+				ui   = playerUI[ satellite.player ]
+
+				position = Vec2.copy( body.position )
+				Vec2.add( position, [ -6, -14 ] )
+
+				renderable = Rendering.createRenderable( "rectangle" )
+				renderable.position = position
+				renderable.size = [ satellite.health / satellite.maxHealth * 12, 4 ]
+				renderable.color = ui.color
+				renderState.renderables.push( renderable )
 					 
 
 			Camera.transformRenderables(

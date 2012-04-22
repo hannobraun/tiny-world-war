@@ -16,19 +16,30 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			body.position = args.position
 			body.velocity = args.velocity
 
+			satellite =
+				player   : args.player
+				health   : 100
+				maxHealth: 100
+
 			id = "deathSatellite#{ nextDeathSatelliteId }"
 			nextDeathSatelliteId += 1
 
 			entity =
 				id: id
 				components:
-					"bodies"  : body
-					"imageIds": "images/skull.png"
+					"bodies"    : body
+					"imageIds"  : "images/skull.png"
+					"satellites": satellite
 
 		"repairSatellite": ( args ) ->
 			body = Physics.createBody()
 			body.position = args.position
 			body.velocity = args.velocity
+
+			satellite =
+				player   : args.player
+				health   : 100
+				maxHealth: 100
 
 			id = "repairSatellite#{ nextRepairSatelliteId }"
 			nextRepairSatelliteId += 1
@@ -36,8 +47,9 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			entity =
 				id: id
 				components:
-					"bodies"  : body
-					"imageIds": "images/red-cross.png"
+					"bodies"    : body
+					"imageIds"  : "images/red-cross.png"
+					"satellites": satellite
 
 		"scoreSatellite": ( args ) ->
 			body = Physics.createBody()
@@ -45,7 +57,9 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			body.velocity = args.velocity
 
 			satellite =
-				player: args.player
+				player   : args.player
+				health   : 100
+				maxHealth: 100
 
 			id = "scoreSatellite#{ nextScoreSatelliteId }"
 			nextScoreSatelliteId += 1
