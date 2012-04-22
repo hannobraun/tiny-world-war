@@ -1,3 +1,7 @@
+body {
+	text-align: center;
+}
+
 #canvas {
 	border-style: solid;
 	border-width: 1px;
@@ -5,5 +9,10 @@
 	background-color:black;
 	
 	display: block;
+	margin: 0 auto;
+}
+
+#description {
+	width: 500px;
 	margin: 0 auto;
 }
