@@ -3,13 +3,15 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 	playerUI =
 		"redPlayer":
-			position   : [ -250, -250 ]
+			position   : [ 100, -250 ]
 			header     : "Red"
-			headerColor: "rgb(255,0,0)"
+			color      : "rgb(255,0,0)"
+			payloadKeys: "left/right"
 		"greenPlayer":
-			position   : [ 150, -250 ]
+			position   : [ -250, -250 ]
 			header     : "Green"
-			headerColor: "rgb(0,255,0)"
+			color      : "rgb(0,255,0)"
+			payloadKeys: "a/d"
 
 	payloadImageIds =
 		"deathSatellite" : "images/skull.png"
@@ -117,24 +119,73 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 			for entityId, player of gameState.components.players
 				ui = playerUI[ entityId ]
+				rocketId = "#{ player.color }Rocket"
 
 				renderable = Rendering.createRenderable( "rectangle" )
 				renderable.position = ui.position
-				renderable.size = [ 100, 50 ]
+				renderable.size = [ 150, 100 ]
 				renderState.renderables.push( renderable )
 
 				renderable = Rendering.createRenderable( "text" )
 				renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 10 ]
 				renderable.text = ui.header
-				renderable.color = ui.headerColor
+				renderable.color = ui.color
 				renderState.renderables.push( renderable )
 
 				renderable = Rendering.createRenderable( "text" )
 				renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 25 ]
-				renderable.text = "Next Payload:"
+				renderable.text = "Progress:"
 				renderState.renderables.push( renderable )
 
-				payloadImageId = payloadImageIds[ player.selectedPayload ]
-				renderable = Rendering.createRenderable( "image", payloadImageId )
-				renderable.position = [ ui.position[ 0 ] + 87, ui.position[ 1 ] + 22 ]
+				renderable = Rendering.createRenderable( "hollowRectangle" )
+				renderable.position = [ ui.position[ 0 ] + 60, ui.position[ 1 ] + 17 ]
+				renderable.size = [ 80, 10 ]
 				renderState.renderables.push( renderable )
+
+				renderable = Rendering.createRenderable( "rectangle" )
+				renderable.position = [ ui.position[ 0 ] + 61, ui.position[ 1 ] + 18 ]
+				renderable.size = [ player.progress / 100 * 78, 8 ]
+				renderable.color = ui.color
+				renderState.renderables.push( renderable )
+
+				renderable = Rendering.createRenderable( "text" )
+				renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 40 ]
+				renderable.text = "Fuel:"
+				renderState.renderables.push( renderable )
+
+				renderable = Rendering.createRenderable( "hollowRectangle" )
+				renderable.position = [ ui.position[ 0 ] + 60, ui.position[ 1 ] + 32 ]
+				renderable.size = [ 80, 10 ]
+				renderState.renderables.push( renderable )
+
+				renderable = Rendering.createRenderable( "rectangle" )
+				renderable.position = [ ui.position[ 0 ] + 61, ui.position[ 1 ] + 33 ]
+				renderable.size = [ player.fuel / 100 * 78, 8 ]
+				renderable.color = ui.color
+				renderState.renderables.push( renderable )
+
+
+				if gameState.components.rockets[ rocketId ]?
+
+				else
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 60 ]
+					renderable.text = "Select payload (use #{ ui.payloadKeys }):"
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "image", "images/skull.png" )
+					renderable.position = [ ui.position[ 0 ] + 60, ui.position[ 1 ] + 73 ]
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "image", "images/red-cross.png" )
+					renderable.position = [ ui.position[ 0 ] + 80, ui.position[ 1 ] + 73 ]
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "image", "images/coin.png" )
+					renderable.position = [ ui.position[ 0 ] + 100, ui.position[ 1 ] + 73 ]
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "hollowRectangle" )
+					renderable.position = [ ui.position[ 0 ] + 52 + ( 20*player.selectedIndex ), ui.position[ 1 ] + 65 ]
+					renderable.size = [ 16, 16 ]
+					renderState.renderables.push( renderable )

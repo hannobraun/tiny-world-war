@@ -59,8 +59,16 @@ define "ModifiedRendering", [], ->
 			context.closePath()
 
 		"rectangle": ( _, context, renderable ) ->
-			context.fillStyle = "rgb(255,255,255)"
+			context.fillStyle = renderable.color || "rgb(255,255,255)"
 			context.fillRect(
+				renderable.position[ 0 ],
+				renderable.position[ 1 ],
+				renderable.size[ 0 ],
+				renderable.size[ 1 ] )
+
+		"hollowRectangle": ( _, context, renderable ) ->
+			context.strokeStyle = renderable.color || "rgb(0,0,0)"
+			context.strokeRect(
 				renderable.position[ 0 ],
 				renderable.position[ 1 ],
 				renderable.size[ 0 ],
