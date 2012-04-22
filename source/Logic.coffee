@@ -242,6 +242,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 
 	planetSize     = 32
 	halfPlanetSize = planetSize / 2
+	bounds         = 250
 	checkPlanetCollision = ( bodies, destroyEntity ) ->
 		for entityId, body of bodies
 			if (
@@ -249,6 +250,14 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 				body.position[ 0 ] > -halfPlanetSize &&
 				body.position[ 1 ] < halfPlanetSize &&
 				body.position[ 1 ] > -halfPlanetSize )
+
+				destroyEntity( entityId )
+
+			if (
+				body.position[ 0 ] < -bounds ||
+				body.position[ 0 ] > bounds ||
+				body.position[ 1 ] < -bounds ||
+				body.position[ 1 ] > bounds )
 
 				destroyEntity( entityId )
 
