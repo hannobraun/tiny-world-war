@@ -211,7 +211,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 			Vec2.scale( force, forceMagnitude )
 			body.forces.push( force )
 
-	fuelBurn = 10
+	fuelBurn = 50
 	fuelGain = 5
 	manageFuel = ( players, rockets, passedTimeInS ) ->
 		for entityId, player of players
