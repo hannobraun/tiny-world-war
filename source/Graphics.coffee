@@ -40,6 +40,49 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 			renderState.renderables.length = 0
 
+			for entityId, satellite of gameState.components.satellites
+				body = gameState.components.bodies[ entityId ]
+
+				speed    = Vec2.length( body.velocity )
+				distance = Vec2.length( body.position )
+
+				semiMajorAxis = -mu / 2 / ( speed*speed / 2 - mu / distance )
+
+				eccentricityVector = Vec2.copy( body.position )
+				Vec2.scale( eccentricityVector, speed*speed / mu )
+				tmp = Vec2.copy( body.velocity )
+				Vec2.scale( tmp, Vec2.dot( body.position, body.velocity ) / mu )
+				Vec2.subtract( eccentricityVector, tmp )
+				tmp = Vec2.copy( body.position )
+				Vec2.scale( tmp, 1 / distance )
+				Vec2.subtract( eccentricityVector, tmp )
+
+				eccentricity = Vec2.length( eccentricityVector )
+
+				semiMinorAxis = semiMajorAxis * Math.sqrt( 1 - eccentricity*eccentricity )
+
+				a = semiMajorAxis
+				b = semiMinorAxis
+				focalDistance = Math.sqrt( a*a - b*b )
+
+				focalToCenter = Vec2.copy( eccentricityVector )
+				Vec2.unit( focalToCenter )
+				Vec2.scale( focalToCenter, -focalDistance )
+
+				orientation = Math.atan2(
+					focalToCenter[ 1 ],
+					focalToCenter[ 0 ] )
+
+				renderable = Rendering.createRenderable( "ellipse" )
+				renderable.position = focalToCenter
+				renderable.orientation = orientation
+				renderable.ellipse =
+					color        : "rgb(255,255,255)"
+					semiMajorAxis: semiMajorAxis
+					semiMinorAxis: semiMinorAxis
+
+				renderState.renderables.push( renderable )
+
 			for entityId, rocket of gameState.components.rockets
 				body = gameState.components.bodies[ entityId ]
 
