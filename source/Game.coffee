@@ -1,6 +1,6 @@
 # noop's Loader module expects a module named "Game" to exist. Loader will load
 # all images specified in imagePaths and pass them to initGame.
-define "Game", [ "Rendering", "Input", "Logic", "Graphics" ], ( Rendering, Input, Logic, Graphics )->
+define "Game", [ "ModifiedRendering", "Input", "Logic", "Graphics" ], ( Rendering, Input, Logic, Graphics )->
 	requestAnimFrame = window.requestAnimationFrame ||
 		window.webkitRequestAnimationFrame ||
 		window.mozRequestAnimationFrame ||
