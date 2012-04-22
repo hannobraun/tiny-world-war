@@ -3,15 +3,23 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 	playerUI =
 		"redPlayer":
-			position   : [ 100, -250 ]
-			header     : "Red"
-			color      : "rgb(255,0,0)"
-			payloadKeys: "left/right"
+			position     : [ 100, -250 ]
+			header       : "Red"
+			color        : "rgb(255,0,0)"
+			payloadKeys  : "left/right"
+			launchKey    : "ctrl"
+			leftRightKeys: "left/right"
+			accelerateKey: "up"
+			deployKey    : "down"
 		"greenPlayer":
-			position   : [ -250, -250 ]
-			header     : "Green"
-			color      : "rgb(0,255,0)"
-			payloadKeys: "a/d"
+			position     : [ -250, -250 ]
+			header       : "Green"
+			color        : "rgb(0,255,0)"
+			payloadKeys  : "a/d"
+			launchKey    : "q"
+			leftRightKeys: "a/d"
+			accelerateKey: "w"
+			deployKey    : "s"
 
 	payloadImageIds =
 		"deathSatellite" : "images/skull.png"
@@ -166,7 +174,38 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 
 				if gameState.components.rockets[ rocketId ]?
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 60 ]
+					renderable.text = "#{ ui.leftRightKeys }"
+					renderable.bold = true
+					renderState.renderables.push( renderable )
 
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 70, ui.position[ 1 ] + 60 ]
+					renderable.text = "for steering"
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 75 ]
+					renderable.text = "#{ ui.accelerateKey }"
+					renderable.bold = true
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 70, ui.position[ 1 ] + 75 ]
+					renderable.text = "for acceleration"
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 90 ]
+					renderable.text = "#{ ui.deployKey }"
+					renderable.bold = true
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 70, ui.position[ 1 ] + 90 ]
+					renderable.text = "for deployment"
+					renderState.renderables.push( renderable )
 				else
 					renderable = Rendering.createRenderable( "text" )
 					renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 60 ]
@@ -188,4 +227,9 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 					renderable = Rendering.createRenderable( "hollowRectangle" )
 					renderable.position = [ ui.position[ 0 ] + 52 + ( 20*player.selectedIndex ), ui.position[ 1 ] + 65 ]
 					renderable.size = [ 16, 16 ]
+					renderState.renderables.push( renderable )
+
+					renderable = Rendering.createRenderable( "text" )
+					renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 95 ]
+					renderable.text = "Enough fuel? Press #{ ui.launchKey }!"
 					renderState.renderables.push( renderable )

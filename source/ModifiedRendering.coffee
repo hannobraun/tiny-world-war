@@ -76,6 +76,8 @@ define "ModifiedRendering", [], ->
 
 		"text": ( _, context, renderable ) ->
 			context.fillStyle = renderable.color || "rgb(0,0,0)"
+			if renderable.bold?
+				context.font = "bold #{ context.font }"
 			context.fillText(
 				renderable.text,
 				renderable.position[ 0 ],
