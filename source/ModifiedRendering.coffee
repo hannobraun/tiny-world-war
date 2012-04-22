@@ -35,8 +35,9 @@ define "ModifiedRendering", [], ->
 			context.stroke()
 
 		"ellipse":( _, context, renderable ) ->
-			context.strokeStyle = "rgb( 255, 255, 255 )"
 			ellipse = renderable.ellipse
+
+			context.strokeStyle = ellipse.color
 
 			context.rotate( renderable.orientation )
 			context.scale(
