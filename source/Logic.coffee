@@ -1,4 +1,4 @@
-define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2" ], ( Input, Entities, Physics, Vec2 ) ->
+define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" ], ( Input, Entities, Physics, Vec2, Transform2d ) ->
 	nextDeathSatelliteId  = 0
 	nextRepairSatelliteId = 0
 	nextRocketId          = 0
@@ -69,6 +69,22 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2" ], ( Input, Ent
 					"bodies": body
 					"imageIds": "images/rocket.png"
 
+	angularVelocity = 2
+	accelerationForce = 5
+	applyInput = ( currentInput, rocket ) ->
+		rocket.angularVelocity = 0
+		if Input.isKeyDown( currentInput, "left arrow" )
+			rocket.angularVelocity = -angularVelocity
+		if Input.isKeyDown( currentInput, "right arrow" )
+			rocket.angularVelocity = angularVelocity
+
+		if Input.isKeyDown( currentInput, "up arrow" )
+			force = [ accelerationForce, 0 ]
+			rotationTransform = Transform2d.rotationMatrix( rocket.orientation )
+			Vec2.applyTransform( force, rotationTransform )
+			rocket.forces.push( force )
+
+
 	G = 5e4
 	applyGravity = ( bodies ) ->
 		for entityId, body of bodies
@@ -134,7 +150,11 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2" ], ( Input, Ent
 				velocity: [ 30, 0 ] } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
-			applyGravity( gameState.components.bodies )
+			applyInput(
+				currentInput,
+				gameState.components.bodies[ "rocket0" ] )
+			applyGravity(
+				gameState.components.bodies )
 			Physics.update(
 				gameState.components.bodies,
 				passedTimeInS )
