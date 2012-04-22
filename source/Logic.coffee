@@ -1,4 +1,4 @@
-define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" ], ( Input, Entities, Physics, Vec2, Transform2d ) ->
+define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d", "Collisions" ], ( Input, Entities, Physics, Vec2, Transform2d, Collisions ) ->
 	nextDeathSatelliteId  = 0
 	nextRepairSatelliteId = 0
 	nextScoreSatelliteId  = 0
@@ -27,9 +27,11 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			entity =
 				id: id
 				components:
-					"bodies"    : body
-					"imageIds"  : "images/skull.png"
-					"satellites": satellite
+					"bodies"         : body
+					"imageIds"       : "images/skull.png"
+					"satellites"     : satellite
+					"shapes"         : "satellite"
+					"deathSatellites": {}
 
 		"repairSatellite": ( args ) ->
 			body = Physics.createBody()
@@ -50,6 +52,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					"bodies"    : body
 					"imageIds"  : "images/red-cross.png"
 					"satellites": satellite
+					"shapes"    : "satellite"
 
 		"scoreSatellite": ( args ) ->
 			body = Physics.createBody()
@@ -70,6 +73,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					"bodies"         : body
 					"imageIds"       : "images/coin.png"
 					"satellites"     : satellite
+					"shapes"         : "satellite"
 					"scoreSatellites": {}
 
 		"rocket": ( args ) ->
@@ -247,6 +251,51 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 				destroyEntity( entityId )
 
+	detectCollisions = ( bodies, shapes, shapeData ) ->
+		collisions = []
+
+		pairs = Collisions.buildPairs( shapes )
+
+		for pair in pairs
+			shape1 = shapeData[ shapes[ pair[ 0 ] ] ]
+			shape2 = shapeData[ shapes[ pair[ 1 ] ] ]
+
+			pos1 = Vec2.copy( bodies[ pair[ 0 ] ].position )
+			pos2 = Vec2.copy( bodies[ pair[ 1 ] ].position )
+			Vec2.add( pos1, shape1.offset )
+			Vec2.add( pos2, shape2.offset )
+
+			contact = Collisions.checkCollision(
+				pos1,
+				pos2,
+				shape1.circle,
+				shape2.circle )
+
+			collision =
+				entityA: pair[ 0 ]
+				entityB: pair[ 1 ]
+				contact: contact
+
+			if contact.touches
+				collisions.push( collision )
+
+		collisions
+
+	amountOfDeath = 10
+	handleCollisions = ( collisions, satellites, deathSatellites, passedTimeInS ) ->
+		for collision in collisions
+			satelliteA = satellites[ collision.entityA ]
+			satelliteB = satellites[ collision.entityB ]
+
+			if deathSatellites[ collision.entityA ]?
+				satelliteB.health -= amountOfDeath * passedTimeInS
+				if satelliteB.health <= 0
+					destroyEntity( collision.entityB )
+			if deathSatellites[ collision.entityB ]?
+				satelliteA.health -= amountOfDeath * passedTimeInS
+				if satelliteA.health <= 0
+					destroyEntity( collision.entityA )
+
 	# There are functions for creating and destroying entities in the Entities
 	# module. We will mostly use shortcuts however. They are declared here and
 	# defined further down in initGameState.
@@ -268,6 +317,8 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					rockets        : {}
 					players        : {}
 					satellites     : {}
+					shapes         : {}
+					deathSatellites: {}
 					scoreSatellites: {}
 
 		initGameState: ( gameState ) ->
@@ -292,7 +343,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			createEntity( "player", {
 				color: "green" } )
 
-		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
+		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS, shapeData ) ->
 			applyInput(
 				currentInput,
 				gameState.components.bodies,
@@ -316,4 +367,13 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				gameState.components.scoreSatellites,
 				gameState.components.satellites,
 				gameState.components.players,
+				passedTimeInS )
+			collisions = detectCollisions(
+				gameState.components.bodies,
+				gameState.components.shapes,
+				shapeData )
+			handleCollisions(
+				collisions,
+				gameState.components.satellites,
+				gameState.components.deathSatellites,
 				passedTimeInS )

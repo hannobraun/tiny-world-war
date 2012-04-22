@@ -1,6 +1,6 @@
 # noop's Loader module expects a module named "Game" to exist. Loader will load
 # all images specified in imagePaths and pass them to initGame.
-define "Game", [ "ModifiedRendering", "Input", "Logic", "Graphics" ], ( Rendering, Input, Logic, Graphics )->
+define "Game", [ "ModifiedRendering", "Input", "Logic", "Graphics", "Collisions" ], ( Rendering, Input, Logic, Graphics, Collisions )->
 	requestAnimFrame = window.requestAnimationFrame ||
 		window.webkitRequestAnimationFrame ||
 		window.mozRequestAnimationFrame ||
@@ -34,6 +34,11 @@ define "Game", [ "ModifiedRendering", "Input", "Logic", "Graphics" ], ( Renderin
 			images[ "images/red-rocket.png"   ].orientationOffset = Math.PI / 2
 			images[ "images/exhaust.png"      ].orientationOffset = Math.PI / 2
 
+			shapeData =
+				"satellite":
+					circle: Collisions.createCircle( 30 )
+					offset: [ 0, 0 ]
+
 			renderData =
 				"image": images
 
@@ -60,7 +65,8 @@ define "Game", [ "ModifiedRendering", "Input", "Logic", "Graphics" ], ( Renderin
 					gameState,
 					currentInput,
 					timeInS,
-					passedTimeInS )
+					passedTimeInS,
+					shapeData )
 				Graphics.updateRenderState(
 					renderState,
 					gameState )
