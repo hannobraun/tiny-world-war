@@ -10,8 +10,8 @@ It was written within 48 hours as part of [Ludum Dare](http://ludumdare.com) #23
 
 ## Who did it?
 
-Hanno Braun
-[mail@hannobraun.com](mailto:mail@hannobraun.com)
+Hanno Braun<br />
+[mail@hannobraun.com](mailto:mail@hannobraun.com)<br />
 [http://hannobraun.com](http://hannobraun.com)
 
 
