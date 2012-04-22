@@ -317,7 +317,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 					if satelliteB.health <= 0
 						entitiesToDestroy.push( collision.entityB )
 				if deathSatellites[ collision.entityB ]?
-					satellite.isActive = true
+					satelliteB.isActive = true
 					satelliteB.target = bodyA.position
 					satelliteA.health -= amountOfDeath * passedTimeInS
 					if satelliteA.health <= 0
