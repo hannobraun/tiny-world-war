@@ -152,7 +152,7 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 				renderable = Rendering.createRenderable( "rectangle" )
 				renderable.position = [ ui.position[ 0 ] + 61, ui.position[ 1 ] + 18 ]
-				renderable.size = [ player.progress / 100 * 78, 8 ]
+				renderable.size = [ player.progress / player.maxProgress * 78, 8 ]
 				renderable.color = ui.color
 				renderState.renderables.push( renderable )
 

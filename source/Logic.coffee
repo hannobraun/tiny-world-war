@@ -44,14 +44,19 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			body.position = args.position
 			body.velocity = args.velocity
 
+			satellite =
+				player: args.player
+
 			id = "scoreSatellite#{ nextScoreSatelliteId }"
 			nextScoreSatelliteId += 1
 
 			entity =
 				id: id
 				components:
-					"bodies"  : body
-					"imageIds": "images/coin.png"
+					"bodies"         : body
+					"imageIds"       : "images/coin.png"
+					"satellites"     : satellite
+					"scoreSatellites": {}
 
 		"rocket": ( args ) ->
 			body = Physics.createBody()
@@ -81,9 +86,11 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				selectedPayload: "deathSatellite"
 				justSelected   : false
 
-				progress: 50
-				fuel    : 0
-				maxFuel : 100
+				progress   : 0
+				maxProgress: 100
+
+				fuel   : 0
+				maxFuel: 100
 
 			entity =
 				id: "#{ args.color }Player"
@@ -140,7 +147,8 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			if Input.isKeyDown( currentInput, mapping[ "down" ] )
 				createEntity( rocket.payload, {
 					position: body.position,
-					velocity: body.velocity } )
+					velocity: body.velocity,
+					player  : rocket.player } )
 				destroyEntity( entityId )
 
 		for entityId, player of players
@@ -200,6 +208,17 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				if player.fuel > player.maxFuel
 					player.fuel = player.maxFuel
 
+	progressGain = 0.5
+	addProgress = ( scoreSatellites, satellites, players, passedTimeInS ) ->
+		for entityId, scoreSatellite of scoreSatellites
+			satellite = satellites[ entityId ]
+			player    = players[ satellite.player ]
+
+			player.progress += progressGain * passedTimeInS
+			if player.progress > player.maxProgress
+				player.progress = player.maxProgress
+
+
 	planetSize     = 32
 	halfPlanetSize = planetSize / 2
 	checkPlanetCollision = ( bodies, destroyEntity ) ->
@@ -227,11 +246,13 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				# Game entities are made up of components. Those are stored
 				# separately.
 				components:
-					positions: {}
-					bodies   : {}
-					imageIds : {}
-					rockets  : {}
-					players  : {}
+					positions      : {}
+					bodies         : {}
+					imageIds       : {}
+					rockets        : {}
+					players        : {}
+					satellites     : {}
+					scoreSatellites: {}
 
 		initGameState: ( gameState ) ->
 			# These are the shortcuts we will use for creating and destroying
@@ -275,3 +296,8 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			checkPlanetCollision(
 				gameState.components.bodies,
 				destroyEntity )
+			addProgress(
+				gameState.components.scoreSatellites,
+				gameState.components.satellites,
+				gameState.components.players,
+				passedTimeInS )
