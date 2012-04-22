@@ -1,4 +1,4 @@
-define "Logic", [ "Input", "Entities", "Physics", "Vec2" ], ( Input, Entities, Physics, Vec2 ) ->
+define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2" ], ( Input, Entities, Physics, Vec2 ) ->
 	nextDeathSatelliteId  = 0
 	nextRepairSatelliteId = 0
 	nextRocketId          = 0
