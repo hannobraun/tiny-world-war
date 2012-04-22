@@ -286,24 +286,32 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 		for entityId, satellite of satellites
 			satellite.isActive = false
 
+		entitiesToDestroy = []
+
 		for collision in collisions
 			satelliteA = satellites[ collision.entityA ]
 			satelliteB = satellites[ collision.entityB ]
 			bodyA = bodies[ collision.entityA ]
 			bodyB = bodies[ collision.entityB ]
 
-			if deathSatellites[ collision.entityA ]?
-				satelliteA.isActive = true
-				satelliteA.target = bodyB.position
-				satelliteB.health -= amountOfDeath * passedTimeInS
-				if satelliteB.health <= 0
-					destroyEntity( collision.entityB )
-			if deathSatellites[ collision.entityB ]?
-				satellite.isActive = true
-				satelliteB.target = bodyA.position
-				satelliteA.health -= amountOfDeath * passedTimeInS
-				if satelliteA.health <= 0
-					destroyEntity( collision.entityA )
+			if satelliteA.player == satelliteB.player
+				# repair satellites
+			else
+				if deathSatellites[ collision.entityA ]?
+					satelliteA.isActive = true
+					satelliteA.target = bodyB.position
+					satelliteB.health -= amountOfDeath * passedTimeInS
+					if satelliteB.health <= 0
+						entitiesToDestroy.push( collision.entityB )
+				if deathSatellites[ collision.entityB ]?
+					satellite.isActive = true
+					satelliteB.target = bodyA.position
+					satelliteA.health -= amountOfDeath * passedTimeInS
+					if satelliteA.health <= 0
+						entitiesToDestroy.push( collision.entityA )
+
+		for entityId in entitiesToDestroy
+			destroyEntity( entityId )
 
 	# There are functions for creating and destroying entities in the Entities
 	# module. We will mostly use shortcuts however. They are declared here and
