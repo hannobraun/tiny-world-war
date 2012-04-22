@@ -168,7 +168,7 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 
 				renderable = Rendering.createRenderable( "rectangle" )
 				renderable.position = [ ui.position[ 0 ] + 61, ui.position[ 1 ] + 33 ]
-				renderable.size = [ player.fuel / 100 * 78, 8 ]
+				renderable.size = [ player.fuel / player.maxFuel * 78, 8 ]
 				renderable.color = ui.color
 				renderState.renderables.push( renderable )
 

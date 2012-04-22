@@ -62,6 +62,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			rocket =
 				accelerates: false
 				payload    : args.payload
+				player     : "#{ args.player }Player"
 
 			id = "#{ args.player }Rocket"
 
@@ -81,7 +82,8 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				justSelected   : false
 
 				progress: 50
-				fuel    : 50
+				fuel    : 0
+				maxFuel : 100
 
 			entity =
 				id: "#{ args.color }Player"
@@ -117,6 +119,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 	applyInput = ( currentInput, bodies, rockets, players, createEntity, destroyEntity ) ->
 		for entityId, rocket of rockets
 			body    = bodies[ entityId ]
+			player  = players[ rocket.player ]
 			mapping = inputMappings[ entityId ]
 
 			body.angularVelocity = 0
@@ -126,7 +129,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				body.angularVelocity = angularVelocity
 
 			rocket.accelerates = false
-			if Input.isKeyDown( currentInput, mapping[ "up" ] )
+			if Input.isKeyDown( currentInput, mapping[ "up" ] ) && player.fuel > 0
 				force = [ accelerationForce, 0 ]
 				rotationTransform = Transform2d.rotationMatrix( body.orientation )
 				Vec2.applyTransform( force, rotationTransform )
@@ -178,6 +181,24 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			Vec2.unit( force )
 			Vec2.scale( force, forceMagnitude )
 			body.forces.push( force )
+
+	fuelBurn = 10
+	fuelGain = 5
+	manageFuel = ( players, rockets, passedTimeInS ) ->
+		for entityId, player of players
+			rocketId = "#{ player.color }Rocket"
+			rocket   = rockets[ rocketId ]
+
+			if rocket?
+				if rocket.accelerates
+					player.fuel -= fuelBurn * passedTimeInS
+
+				if player.fuel < 0
+					player.fuel = 0
+			else
+				player.fuel += fuelGain * passedTimeInS
+				if player.fuel > player.maxFuel
+					player.fuel = player.maxFuel
 
 	planetSize     = 32
 	halfPlanetSize = planetSize / 2
@@ -234,27 +255,6 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			createEntity( "player", {
 				color: "green" } )
 
-			# createEntity( "deathSatellite", {
-			# 	position: [ 0, -100 ]
-			# 	velocity: [ 20, 0 ] } )
-
-			# createEntity( "repairSatellite", {
-			# 	position: [ 0, -150 ]
-			# 	velocity: [ 15, 0 ] } )
-
-			# createEntity( "scoreSatellite", {
-			# 	position: [ 0, -200 ]
-			# 	velocity: [ 15, 0 ] } )
-
-			# createEntity( "rocket", {
-			# 	position: [ 0, -50 ]
-			# 	velocity: [ 30, 0 ]
-			# 	player  : "red" } )
-			# createEntity( "rocket", {
-			# 	position: [ 0, 50 ]
-			# 	velocity: [ -30, 0 ]
-			# 	player  : "green" } )
-
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			applyInput(
 				currentInput,
@@ -263,6 +263,10 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 				gameState.components.players,
 				createEntity,
 				destroyEntity )
+			manageFuel(
+				gameState.components.players,
+				gameState.components.rockets,
+				passedTimeInS )
 			applyGravity(
 				gameState.components.bodies )
 			Physics.update(
