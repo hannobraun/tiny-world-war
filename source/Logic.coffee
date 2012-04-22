@@ -60,7 +60,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			body.velocity    = args.velocity
 			body.orientation = -Math.PI / 2
 
-			id = "rocket#{ nextRocketId }"
+			id = "#{ args.player }Rocket"
 			nextRocketId += 1
 
 			entity =
@@ -69,20 +69,33 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 					"bodies": body
 					"imageIds": "images/rocket.png"
 
+	inputMappings =
+		"redRocket":
+			"left" : "left arrow"
+			"right": "right arrow"
+			"up"   : "up arrow"
+		"greenRocket":
+			"left" : "a"
+			"right": "d"
+			"up"   : "w"
 	angularVelocity = 2
 	accelerationForce = 5
-	applyInput = ( currentInput, rocket ) ->
-		rocket.angularVelocity = 0
-		if Input.isKeyDown( currentInput, "left arrow" )
-			rocket.angularVelocity = -angularVelocity
-		if Input.isKeyDown( currentInput, "right arrow" )
-			rocket.angularVelocity = angularVelocity
+	applyInput = ( currentInput, bodies ) ->
+		for rocketId, mapping of inputMappings
+			rocket = bodies[ rocketId ]
 
-		if Input.isKeyDown( currentInput, "up arrow" )
-			force = [ accelerationForce, 0 ]
-			rotationTransform = Transform2d.rotationMatrix( rocket.orientation )
-			Vec2.applyTransform( force, rotationTransform )
-			rocket.forces.push( force )
+			if rocket?
+				rocket.angularVelocity = 0
+				if Input.isKeyDown( currentInput, mapping[ "left" ] )
+					rocket.angularVelocity = -angularVelocity
+				if Input.isKeyDown( currentInput, mapping[ "right" ] )
+					rocket.angularVelocity = angularVelocity
+
+				if Input.isKeyDown( currentInput, mapping[ "up" ] )
+					force = [ accelerationForce, 0 ]
+					rotationTransform = Transform2d.rotationMatrix( rocket.orientation )
+					Vec2.applyTransform( force, rotationTransform )
+					rocket.forces.push( force )
 
 
 	G = 5e4
@@ -147,12 +160,17 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 			createEntity( "rocket", {
 				position: [ 0, -50 ]
-				velocity: [ 30, 0 ] } )
+				velocity: [ 30, 0 ]
+				player  : "red" } )
+			createEntity( "rocket", {
+				position: [ 0, 50 ]
+				velocity: [ -30, 0 ]
+				player  : "green" } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS ) ->
 			applyInput(
 				currentInput,
-				gameState.components.bodies[ "rocket0" ] )
+				gameState.components.bodies )
 			applyGravity(
 				gameState.components.bodies )
 			Physics.update(
