@@ -5,6 +5,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 	nextDeathSatelliteId  = 0
 	nextRepairSatelliteId = 0
 	nextScoreSatelliteId  = 0
+	nextStarId            = 0
 
 	entityFactories =
 		"tinyPlanet": ( args ) ->
@@ -13,6 +14,23 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 				components:
 					"positions": [ 0, 0 ]
 					"imageIds" : "images/tiny-world.png"
+
+		"star": ( args ) ->
+			position = [
+				Math.random() * 500 - 250
+				Math.random() * 500 - 250 ]
+
+			type = if Math.random() * 10 > 1 then 1 else 2
+			imageId = "images/star#{ type }.png"
+
+			id = "star#{ nextStarId }"
+			nextStarId += 1
+
+			entity =
+				id: id
+				components:
+					"positions": position
+					"imageIds" : imageId
 
 		"deathSatellite": ( args ) ->
 			body = Physics.createBody()
@@ -390,7 +408,9 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 					gameState.components,
 					entityId )
 
-
+			for i in [1..100]
+				createEntity( "star" )
+				
 			createEntity( "tinyPlanet", {} )
 
 			createEntity( "player", {
