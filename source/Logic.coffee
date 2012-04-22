@@ -62,6 +62,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 			rocket =
 				accelerates: false
+				payload    : "deathSatellite"
 
 			id = "#{ args.player }Rocket"
 			nextRocketId += 1
@@ -78,13 +79,15 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			"left" : "left arrow"
 			"right": "right arrow"
 			"up"   : "up arrow"
+			"down" : "down arrow"
 		"greenRocket":
 			"left" : "a"
 			"right": "d"
 			"up"   : "w"
+			"down" : "s"
 	angularVelocity = 2
 	accelerationForce = 5
-	applyInput = ( currentInput, bodies, rockets ) ->
+	applyInput = ( currentInput, bodies, rockets, createEntity, destroyEntity ) ->
 		for entityId, rocket of rockets
 			body    = bodies[ entityId ]
 			mapping = inputMappings[ entityId ]
@@ -104,6 +107,11 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 				rocket.accelerates = true
 
+			if Input.isKeyDown( currentInput, mapping[ "down" ] )
+				createEntity( rocket.payload, {
+					position: body.position,
+					velocity: body.velocity } )
+				destroyEntity( entityId )
 
 	G = 5e4
 	applyGravity = ( bodies ) ->
@@ -191,7 +199,9 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 			applyInput(
 				currentInput,
 				gameState.components.bodies,
-				gameState.components.rockets )
+				gameState.components.rockets,
+				createEntity,
+				destroyEntity )
 			applyGravity(
 				gameState.components.bodies )
 			Physics.update(
