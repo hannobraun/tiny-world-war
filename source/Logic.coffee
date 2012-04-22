@@ -1,4 +1,4 @@
-define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d", "Collisions" ], ( Input, Entities, Physics, Vec2, Transform2d, Collisions ) ->
+define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Transform2d", "Collisions" ], ( Input, Entities, Physics, Vec2, Transform2d, Collisions ) ->
 	G = 5e4
 	mu = G
 
@@ -410,7 +410,7 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d",
 
 			for i in [1..100]
 				createEntity( "star" )
-				
+
 			createEntity( "tinyPlanet", {} )
 
 			createEntity( "player", {

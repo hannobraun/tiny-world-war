@@ -77,7 +77,7 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 				renderable.position = focalToCenter
 				renderable.orientation = orientation
 				renderable.ellipse =
-					color        : "rgb(255,255,255)"
+					color        : "rgb(80,80,80)"
 					semiMajorAxis: semiMajorAxis
 					semiMinorAxis: semiMinorAxis
 
