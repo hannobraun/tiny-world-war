@@ -1,6 +1,21 @@
 define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( Rendering, Camera, Vec2, Transform2d ) ->
 	mu = 5e4
 
+	playerUI =
+		"redPlayer":
+			position   : [ -250, -250 ]
+			header     : "Red"
+			headerColor: "rgb(255,0,0)"
+		"greenPlayer":
+			position   : [ 150, -250 ]
+			header     : "Green"
+			headerColor: "rgb(0,255,0)"
+
+	payloadImageIds =
+		"deathSatellite" : "images/skull.png"
+		"repairSatellite": "images/red-cross.png"
+		"scoreSatellite" : "images/coin.png"
+
 	module =
 		createRenderState: ->
 			renderState =
@@ -95,7 +110,31 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 					renderState.renderables.push( renderable )
 					 
 
-
 			Camera.transformRenderables(
 				renderState.camera,
 				renderState.renderables )
+
+
+			for entityId, player of gameState.components.players
+				ui = playerUI[ entityId ]
+
+				renderable = Rendering.createRenderable( "rectangle" )
+				renderable.position = ui.position
+				renderable.size = [ 100, 50 ]
+				renderState.renderables.push( renderable )
+
+				renderable = Rendering.createRenderable( "text" )
+				renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 10 ]
+				renderable.text = ui.header
+				renderable.color = ui.headerColor
+				renderState.renderables.push( renderable )
+
+				renderable = Rendering.createRenderable( "text" )
+				renderable.position = [ ui.position[ 0 ] + 10, ui.position[ 1 ] + 25 ]
+				renderable.text = "Next Payload:"
+				renderState.renderables.push( renderable )
+
+				payloadImageId = payloadImageIds[ player.selectedPayload ]
+				renderable = Rendering.createRenderable( "image", payloadImageId )
+				renderable.position = [ ui.position[ 0 ] + 87, ui.position[ 1 ] + 22 ]
+				renderState.renderables.push( renderable )

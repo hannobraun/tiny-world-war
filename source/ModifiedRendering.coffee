@@ -58,6 +58,21 @@ define "ModifiedRendering", [], ->
 			context.stroke()
 			context.closePath()
 
+		"rectangle": ( _, context, renderable ) ->
+			context.fillStyle = "rgb(255,255,255)"
+			context.fillRect(
+				renderable.position[ 0 ],
+				renderable.position[ 1 ],
+				renderable.size[ 0 ],
+				renderable.size[ 1 ] )
+
+		"text": ( _, context, renderable ) ->
+			context.fillStyle = renderable.color || "rgb(0,0,0)"
+			context.fillText(
+				renderable.text,
+				renderable.position[ 0 ],
+				renderable.position[ 1 ] )
+
 	module =
 		createDisplay: ->
 			canvas  = document.getElementById( "canvas" )

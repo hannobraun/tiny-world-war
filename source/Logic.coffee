@@ -74,7 +74,8 @@ define "Logic", [ "Input", "Entities", "ModifiedPhysics", "Vec2", "Transform2d" 
 
 		"player": ( args ) ->
 			player =
-				color: args.color
+				color          : args.color
+				selectedPayload: "deathSatellite"
 
 			entity =
 				id: "#{ args.color }Player"
