@@ -923,7 +923,7 @@
         var currentInput;
         currentInput = {};
         window.addEventListener("keydown", function(keyDownEvent) {
-          if (keyDownEvent.keyCode === keyCodesByName["down arrow"] || keyDownEvent.keyCode === keyCodesByName["space"]) {
+          if (keyDownEvent.keyCode === keyCodesByName["down arrow"] || keyDownEvent.keyCode === keyCodesByName["up arrow"] || keyDownEvent.keyCode === keyCodesByName["right arrow"] || keyDownEvent.keyCode === keyCodesByName["left arrow"] || keyDownEvent.keyCode === keyCodesByName["space"]) {
             keyDownEvent.preventDefault();
           }
           return currentInput[keyNamesByCode[keyDownEvent.keyCode]] = true;
