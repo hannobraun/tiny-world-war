@@ -1,4 +1,0 @@
-coffee --watch --compile --join output/game.js vendor/noop/source/Modules.coffee vendor/noop/source/framework source &
-coffee --watch --compile --join output/test.js vendor/noop/source/Modules.coffee vendor/noop/source/framework source test &
-
-read
