@@ -407,6 +407,9 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 		rocketId = "#{ aiPlayer.color }Rocket"
 		rocket   = rockets[ rocketId ]
 
+		unless aiPlayer.ai
+			return
+
 		if rocket?
 			body = bodies[ rocketId ]
 
@@ -463,6 +466,8 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 
 	updateAI = ( players, satellites, deathSatellites, repairSatellites, scoreSatellites, rockets, bodies ) ->
 		aiPlayer = players[ "greenPlayer" ]
+		unless aiPlayer.ai
+			return
 
 		unless rockets[ "#{ aiPlayer.color }Rocket" ]?
 			if aiPlayer.nextSatteliteChosen
@@ -606,10 +611,10 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 
 			createEntity( "player", {
 				color: "red" } )
-			createEntity( "aiPlayer", {
-				color: "green" } )
-			# createEntity( "player", {
+			# createEntity( "aiPlayer", {
 			# 	color: "green" } )
+			createEntity( "player", {
+				color: "green" } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS, shapeData ) ->
 			applyInput(
