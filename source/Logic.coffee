@@ -397,64 +397,96 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 		for entityId in entitiesToDestroy
 			destroyEntity( entityId )
 
-	updateAI = ( players, satellites, deathSatellites, repairSatellites, scoreSatellites ) ->
+	updateAI = ( players, satellites, deathSatellites, repairSatellites, scoreSatellites, rockets ) ->
 		aiPlayer = players[ "greenPlayer" ]
-		unless aiPlayer.nextSatteliteChosen
-			numberOfEnemyDeathSatellites  = 0
-			numberOfEnemyRepairSattelites = 0
-			numberOfEnemyScoreSatellites  = 0
+		rocketId = "#{ aiPlayer.color }Rocket"
+		rocket   = rockets[ rocketId ]
 
-			numberOfOwnSatellites = 0
+		if rocket?
 
-			for entityId, satellite of satellites
-				if satellite.player == "redPlayer"
-					if deathSatellites[ entityId ]?
-						numberOfEnemyDeathSatellites += 1
-					if repairSatellites[ entityId ]?
-						numberOfEnemyRepairSattelites += 1
-					if scoreSatellites[ entityId ]?
-						numberOfEnemyScoreSatellites += 1
-				else
-					numberOfOwnSatellites += 1
+		else
+			if aiPlayer.nextSatteliteChosen
+				orbitFuelRequirement =
+					"low"     : aiPlayer.minFuel
+					"transfer": aiPlayer.maxFuel / 2
+					"high"    : aiPlayer.maxFuel
 
-			deathSatelliteChance  = numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites + numberOfEnemyScoreSatellites
-			repairSatelliteChance = numberOfOwnSatellites
-			scoreSatelliteChance  = 1 + numberOfEnemyScoreSatellites*3
+				if aiPlayer.fuel >= orbitFuelRequirement[ aiPlayer.nextOrbit ]
+					orbitAngle  = Math.random() * Math.PI * 2
+					orientation = orbitAngle + Math.PI/2
 
-			repairSatelliteChance += deathSatelliteChance
-			scoreSatelliteChance  += repairSatelliteChance
+					rotationTransform = Transform2d.rotationMatrix( orbitAngle )
+					position = [ initialRocketDistance, 0 ]
+					Vec2.applyTransform( position, rotationTransform )
 
-			r = Math.random() * scoreSatelliteChance
+					rotationTransform = Transform2d.rotationMatrix( orientation )
+					velocity = [ 30, 0 ]
+					Vec2.applyTransform( velocity, rotationTransform )
 
-			nextSatellite = if r < deathSatelliteChance
-				"deathSatellite"
-			else if r >= deathSatelliteChance && r < repairSatelliteChance
-				"repairSatellite"
-			else if r >= repairSatelliteChance && r < scoreSatelliteChance
-				"scoreSatellite"
+					createEntity( "rocket", {
+						position   : position
+						velocity   : velocity
+						orientation: orientation
+						player     : aiPlayer.color,
+						payload    : aiPlayer.selectedPayload } )
 			else
-				throw "Invalid next satellite selected."
+				numberOfEnemyDeathSatellites  = 0
+				numberOfEnemyRepairSattelites = 0
+				numberOfEnemyScoreSatellites  = 0
 
-			aiPlayer.selectedPayload = nextSatellite
-			aiPlayer.selectedIndex = -1
-			for payload, index in payloadSelection
-				if payload == nextSatellite
-					aiPlayer.selectedIndex = index
-			if aiPlayer.selectedIndex == -1
-				throw "Invalid index selected."
+				numberOfOwnSatellites = 0
 
-			if nextSatellite == "deathSatellite"
-				nextOrbit = [ "low", "transfer" ]
-				aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
-			if nextSatellite == "repairSatellite"
-				nextOrbit = [ "low", "transfer" ]
-				aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
-			if nextSatellite == "scoreSatellite"
-				aiPlayer.nextOrbit = "high"
+				for entityId, satellite of satellites
+					if satellite.player == "redPlayer"
+						if deathSatellites[ entityId ]?
+							numberOfEnemyDeathSatellites += 1
+						if repairSatellites[ entityId ]?
+							numberOfEnemyRepairSattelites += 1
+						if scoreSatellites[ entityId ]?
+							numberOfEnemyScoreSatellites += 1
+					else
+						numberOfOwnSatellites += 1
 
-			console.log( aiPlayer.nextOrbit )
+				deathSatelliteChance  = numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites + numberOfEnemyScoreSatellites
+				repairSatelliteChance = numberOfOwnSatellites
+				scoreSatelliteChance  = 1 + numberOfEnemyScoreSatellites*3
 
-			# aiPlayer.nextSatteliteChosen = true
+				repairSatelliteChance += deathSatelliteChance
+				scoreSatelliteChance  += repairSatelliteChance
+
+				r = Math.random() * scoreSatelliteChance
+
+				nextSatellite = if r < deathSatelliteChance
+					"deathSatellite"
+				else if r >= deathSatelliteChance && r < repairSatelliteChance
+					"repairSatellite"
+				else if r >= repairSatelliteChance && r < scoreSatelliteChance
+					"scoreSatellite"
+				else
+					throw "Invalid next satellite selected."
+
+				aiPlayer.selectedPayload = nextSatellite
+				aiPlayer.selectedIndex = -1
+				for payload, index in payloadSelection
+					if payload == nextSatellite
+						aiPlayer.selectedIndex = index
+				if aiPlayer.selectedIndex == -1
+					throw "Invalid index selected."
+
+				if nextSatellite == "deathSatellite"
+					nextOrbit = [ "low", "transfer" ]
+					aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
+				if nextSatellite == "repairSatellite"
+					nextOrbit = [ "low", "transfer" ]
+					aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
+				if nextSatellite == "scoreSatellite"
+					aiPlayer.nextOrbit = "high"
+
+				console.log( aiPlayer.nextOrbit )
+
+				aiPlayer.nextSatteliteChosen = true
+
+
 
 
 
@@ -557,4 +589,5 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					gameState.components.satellites,
 					gameState.components.deathSatellites,
 					gameState.components.repairSatellites,
-					gameState.components.scoreSatellites )
+					gameState.components.scoreSatellites,
+					gameState.components.rockets )
