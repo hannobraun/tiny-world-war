@@ -464,7 +464,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 			if aiPlayer.nextSatteliteChosen
 				orbitFuelRequirement =
 					"low"     : aiPlayer.minFuel
-					"transfer": aiPlayer.maxFuel / 2
+					"transfer": 50
 					"high"    : aiPlayer.maxFuel
 
 				if aiPlayer.fuel >= orbitFuelRequirement[ aiPlayer.nextOrbit ]
@@ -492,7 +492,9 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 				numberOfEnemyRepairSattelites = 0
 				numberOfEnemyScoreSatellites  = 0
 
-				numberOfOwnSatellites = 0
+				numberOfOwnDeathSatellites  = 0
+				numberOfOwnRepairSatellites = 0
+				numberOfOwnScoreSatellites  = 0
 
 				for entityId, satellite of satellites
 					if satellite.player == "redPlayer"
@@ -503,11 +505,16 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 						if scoreSatellites[ entityId ]?
 							numberOfEnemyScoreSatellites += 1
 					else
-						numberOfOwnSatellites += 1
+						if deathSatellites[ entityId ]?
+							numberOfOwnDeathSatellites += 1
+						if repairSatellites[ entityId ]?
+							numberOfOwnRepairSatellites += 1
+						if scoreSatellites[ entityId ]?
+							numberOfOwnScoreSatellites += 1
 
-				deathSatelliteChance  = numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites + numberOfEnemyScoreSatellites
-				repairSatelliteChance = numberOfOwnSatellites
-				scoreSatelliteChance  = 1 + numberOfEnemyScoreSatellites*3
+				deathSatelliteChance  = 1 * ( numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites*0.5 + numberOfEnemyScoreSatellites*2 )
+				repairSatelliteChance = 1 * ( numberOfOwnDeathSatellites + numberOfOwnScoreSatellites + numberOfEnemyRepairSattelites*0.5 + numberOfEnemyDeathSatellites*2 )
+				scoreSatelliteChance  = 1 * ( 1 + numberOfEnemyScoreSatellites*3 )
 
 				repairSatelliteChance += deathSatelliteChance
 				scoreSatelliteChance  += repairSatelliteChance
@@ -532,11 +539,11 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					throw "Invalid index selected."
 
 				if nextSatellite == "deathSatellite"
-					nextOrbit = [ "low", "transfer" ]
-					aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
+					r = Math.random() * 4
+					aiPlayer.nextOrbit = if r < 1 then "low" else "transfer"
 				if nextSatellite == "repairSatellite"
-					nextOrbit = [ "low", "transfer" ]
-					aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
+					r = Math.random() * 4
+					aiPlayer.nextOrbit = if r < 1 then "low" else "transfer"
 				if nextSatellite == "scoreSatellite"
 					aiPlayer.nextOrbit = "high"
 
