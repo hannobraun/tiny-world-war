@@ -941,7 +941,7 @@
   });
 
   define("Logic", ["ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Transform2d", "Collisions"], function(Input, Entities, Physics, Vec2, Transform2d, Collisions) {
-    var G, accelerationForce, addProgress, amountOfDeath, amountOfRepair, angularVelocity, applyGravity, applyInput, bounds, checkPlanetCollision, createEntity, destroyEntity, detectCollisions, entityFactories, fuelBurn, fuelGain, halfPlanetSize, handleCollisions, initialRocketDistance, inputMappings, manageFuel, module, mu, nextDeathSatelliteId, nextRepairSatelliteId, nextScoreSatelliteId, nextStarId, payloadSelection, planetSize, progressGain;
+    var G, accelerationForce, addProgress, aiCountdown, amountOfDeath, amountOfRepair, angularVelocity, applyGravity, applyInput, bounds, checkPlanetCollision, createEntity, destroyEntity, detectCollisions, entityFactories, fuelBurn, fuelGain, halfPlanetSize, handleCollisions, highOrbitDistance, initialRocketDistance, inputMappings, manageFuel, module, mu, nextDeathSatelliteId, nextRepairSatelliteId, nextScoreSatelliteId, nextStarId, payloadSelection, planetSize, progressGain, updateAI, updateAIRocket;
     G = 5e4;
     mu = G;
     nextDeathSatelliteId = 0;
@@ -1067,6 +1067,7 @@
       "player": function(args) {
         var entity, player;
         player = {
+          ai: false,
           color: args.color,
           selectedIndex: 0,
           selectedPayload: "deathSatellite",
@@ -1075,7 +1076,32 @@
           maxProgress: 100,
           fuel: 0,
           maxFuel: 80,
-          minFuel: 20
+          minFuel: 20,
+          winner: ""
+        };
+        return entity = {
+          id: "" + args.color + "Player",
+          components: {
+            players: player
+          }
+        };
+      },
+      "aiPlayer": function(args) {
+        var entity, player;
+        player = {
+          ai: true,
+          color: args.color,
+          selectedIndex: 0,
+          selectedPayload: "deathSatellite",
+          justSelected: false,
+          progress: 0,
+          maxProgress: 100,
+          fuel: 0,
+          maxFuel: 80,
+          minFuel: 20,
+          winner: "",
+          nextSatteliteChosen: false,
+          nextOrbit: "low"
         };
         return entity = {
           id: "" + args.color + "Player",
@@ -1120,34 +1146,37 @@
         body = bodies[entityId];
         player = players[rocket.player];
         mapping = inputMappings[entityId];
-        body.angularVelocity = 0;
-        if (Input.isKeyDown(currentInput, mapping["left"])) {
-          body.angularVelocity = -angularVelocity;
-        }
-        if (Input.isKeyDown(currentInput, mapping["right"])) {
-          body.angularVelocity = angularVelocity;
-        }
-        rocket.accelerates = false;
-        if (Input.isKeyDown(currentInput, mapping["up"]) && player.fuel > 0) {
-          force = [accelerationForce, 0];
-          rotationTransform = Transform2d.rotationMatrix(body.orientation);
-          Vec2.applyTransform(force, rotationTransform);
-          body.forces.push(force);
-          rocket.accelerates = true;
-        }
-        if (Input.isKeyDown(currentInput, mapping["down"])) {
-          createEntity(rocket.payload, {
-            position: body.position,
-            velocity: body.velocity,
-            player: rocket.player
-          });
-          destroyEntity(entityId);
-          player.fuel = 0;
+        if (!player.ai) {
+          body.angularVelocity = 0;
+          if (Input.isKeyDown(currentInput, mapping["left"])) {
+            body.angularVelocity = -angularVelocity;
+          }
+          if (Input.isKeyDown(currentInput, mapping["right"])) {
+            body.angularVelocity = angularVelocity;
+          }
+          rocket.accelerates = false;
+          if (Input.isKeyDown(currentInput, mapping["up"]) && player.fuel > 0) {
+            force = [accelerationForce, 0];
+            rotationTransform = Transform2d.rotationMatrix(body.orientation);
+            Vec2.applyTransform(force, rotationTransform);
+            body.forces.push(force);
+            rocket.accelerates = true;
+          }
+          if (Input.isKeyDown(currentInput, mapping["down"])) {
+            createEntity(rocket.payload, {
+              position: body.position,
+              velocity: body.velocity,
+              player: rocket.player
+            });
+            destroyEntity(entityId);
+            player.fuel = 0;
+          }
         }
       }
       _results = [];
       for (entityId in players) {
         player = players[entityId];
+        if (!(player.ai !== true)) continue;
         rocketId = "" + player.color + "Rocket";
         mapping = inputMappings[entityId];
         if (rockets[rocketId] == null) {
@@ -1209,7 +1238,7 @@
       return _results;
     };
     fuelBurn = 20;
-    fuelGain = 5;
+    fuelGain = 2.5;
     manageFuel = function(players, rockets, passedTimeInS) {
       var entityId, player, rocket, rocketId, _results;
       _results = [];
@@ -1347,8 +1376,168 @@
       }
       return _results;
     };
+    highOrbitDistance = 190;
+    updateAIRocket = function(players, rockets, bodies) {
+      var aiPlayer, body, force, rocket, rocketId, rotationTransform;
+      aiPlayer = players["greenPlayer"];
+      rocketId = "" + aiPlayer.color + "Rocket";
+      rocket = rockets[rocketId];
+      if (!aiPlayer.ai) return;
+      if (rocket != null) {
+        body = bodies[rocketId];
+        body.orientation = Math.atan2(body.position[1], body.position[0]) + Math.PI / 2;
+        rocket.accelerates = false;
+        if (aiPlayer.nextOrbit === "low") {
+          createEntity(rocket.payload, {
+            position: body.position,
+            velocity: body.velocity,
+            player: rocket.player
+          });
+          destroyEntity(rocketId);
+          aiPlayer.fuel = 0;
+        }
+        if (aiPlayer.nextOrbit === "transfer") {
+          if (aiPlayer.fuel > 10) {
+            force = [accelerationForce, 0];
+            rotationTransform = Transform2d.rotationMatrix(body.orientation);
+            Vec2.applyTransform(force, rotationTransform);
+            body.forces.push(force);
+            rocket.accelerates = true;
+          } else {
+            createEntity(rocket.payload, {
+              position: body.position,
+              velocity: body.velocity,
+              player: rocket.player
+            });
+            destroyEntity(rocketId);
+            aiPlayer.fuel = 0;
+          }
+        }
+        if (aiPlayer.nextOrbit === "high") {
+          if (aiPlayer.fuel > 40) {
+            force = [accelerationForce, 0];
+            rotationTransform = Transform2d.rotationMatrix(body.orientation);
+            Vec2.applyTransform(force, rotationTransform);
+            body.forces.push(force);
+            return rocket.accelerates = true;
+          } else if (aiPlayer.fuel > 20 && Vec2.squaredLength(body.position) > highOrbitDistance * highOrbitDistance) {
+            force = [accelerationForce, 0];
+            rotationTransform = Transform2d.rotationMatrix(body.orientation);
+            Vec2.applyTransform(force, rotationTransform);
+            body.forces.push(force);
+            return rocket.accelerates = true;
+          } else if (aiPlayer.fuel <= 20) {
+            createEntity(rocket.payload, {
+              position: body.position,
+              velocity: body.velocity,
+              player: rocket.player
+            });
+            destroyEntity(rocketId);
+            return aiPlayer.fuel = 0;
+          }
+        }
+      }
+    };
+    updateAI = function(players, satellites, deathSatellites, repairSatellites, scoreSatellites, rockets, bodies) {
+      var aiPlayer, deathSatelliteChance, entityId, index, nextSatellite, numberOfEnemyDeathSatellites, numberOfEnemyRepairSattelites, numberOfEnemyScoreSatellites, numberOfOwnDeathSatellites, numberOfOwnRepairSatellites, numberOfOwnScoreSatellites, orbitAngle, orbitFuelRequirement, orientation, payload, position, r, repairSatelliteChance, rotationTransform, satellite, scoreSatelliteChance, velocity, _len;
+      aiPlayer = players["greenPlayer"];
+      if (!aiPlayer.ai) return;
+      if (rockets["" + aiPlayer.color + "Rocket"] == null) {
+        if (aiPlayer.nextSatteliteChosen) {
+          orbitFuelRequirement = {
+            "low": aiPlayer.minFuel,
+            "transfer": 50,
+            "high": aiPlayer.maxFuel
+          };
+          if (aiPlayer.fuel >= orbitFuelRequirement[aiPlayer.nextOrbit]) {
+            orbitAngle = Math.random() * Math.PI * 2;
+            orientation = orbitAngle + Math.PI / 2;
+            rotationTransform = Transform2d.rotationMatrix(orbitAngle);
+            position = [initialRocketDistance, 0];
+            Vec2.applyTransform(position, rotationTransform);
+            rotationTransform = Transform2d.rotationMatrix(orientation);
+            velocity = [30, 0];
+            Vec2.applyTransform(velocity, rotationTransform);
+            createEntity("rocket", {
+              position: position,
+              velocity: velocity,
+              orientation: orientation,
+              player: aiPlayer.color,
+              payload: aiPlayer.selectedPayload
+            });
+            return aiPlayer.nextSatteliteChosen = false;
+          }
+        } else {
+          numberOfEnemyDeathSatellites = 0;
+          numberOfEnemyRepairSattelites = 0;
+          numberOfEnemyScoreSatellites = 0;
+          numberOfOwnDeathSatellites = 0;
+          numberOfOwnRepairSatellites = 0;
+          numberOfOwnScoreSatellites = 0;
+          for (entityId in satellites) {
+            satellite = satellites[entityId];
+            if (satellite.player === "redPlayer") {
+              if (deathSatellites[entityId] != null) {
+                numberOfEnemyDeathSatellites += 1;
+              }
+              if (repairSatellites[entityId] != null) {
+                numberOfEnemyRepairSattelites += 1;
+              }
+              if (scoreSatellites[entityId] != null) {
+                numberOfEnemyScoreSatellites += 1;
+              }
+            } else {
+              if (deathSatellites[entityId] != null) {
+                numberOfOwnDeathSatellites += 1;
+              }
+              if (repairSatellites[entityId] != null) {
+                numberOfOwnRepairSatellites += 1;
+              }
+              if (scoreSatellites[entityId] != null) {
+                numberOfOwnScoreSatellites += 1;
+              }
+            }
+          }
+          deathSatelliteChance = 1.5 * (numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites * 0.5 + numberOfEnemyScoreSatellites * 4);
+          repairSatelliteChance = 0.5 * (numberOfOwnDeathSatellites + numberOfOwnScoreSatellites + numberOfEnemyRepairSattelites * 0.5 + numberOfEnemyDeathSatellites * 2);
+          scoreSatelliteChance = 1 * (1 + numberOfEnemyScoreSatellites * 3);
+          repairSatelliteChance += deathSatelliteChance;
+          scoreSatelliteChance += repairSatelliteChance;
+          r = Math.random() * scoreSatelliteChance;
+          nextSatellite = (function() {
+            if (r < deathSatelliteChance) {
+              return "deathSatellite";
+            } else if (r >= deathSatelliteChance && r < repairSatelliteChance) {
+              return "repairSatellite";
+            } else if (r >= repairSatelliteChance && r < scoreSatelliteChance) {
+              return "scoreSatellite";
+            } else {
+              throw "Invalid next satellite selected.";
+            }
+          })();
+          aiPlayer.selectedPayload = nextSatellite;
+          aiPlayer.selectedIndex = -1;
+          for (index = 0, _len = payloadSelection.length; index < _len; index++) {
+            payload = payloadSelection[index];
+            if (payload === nextSatellite) aiPlayer.selectedIndex = index;
+          }
+          if (aiPlayer.selectedIndex === -1) throw "Invalid index selected.";
+          if (nextSatellite === "deathSatellite") {
+            r = Math.random() * 4;
+            aiPlayer.nextOrbit = r < 1 ? "low" : "transfer";
+          }
+          if (nextSatellite === "repairSatellite") {
+            r = Math.random() * 4;
+            aiPlayer.nextOrbit = r < 1 ? "low" : "transfer";
+          }
+          if (nextSatellite === "scoreSatellite") aiPlayer.nextOrbit = "high";
+          return aiPlayer.nextSatteliteChosen = true;
+        }
+      }
+    };
     createEntity = null;
     destroyEntity = null;
+    aiCountdown = 0;
     return module = {
       createGameState: function() {
         var gameState;
@@ -1396,7 +1585,13 @@
         checkPlanetCollision(gameState.components.bodies, destroyEntity);
         addProgress(gameState.components.scoreSatellites, gameState.components.satellites, gameState.components.players, passedTimeInS);
         collisions = detectCollisions(gameState.components.bodies, gameState.components.shapes, shapeData);
-        return handleCollisions(collisions, gameState.components.satellites, gameState.components.deathSatellites, gameState.components.repairSatellites, gameState.components.bodies, passedTimeInS);
+        handleCollisions(collisions, gameState.components.satellites, gameState.components.deathSatellites, gameState.components.repairSatellites, gameState.components.bodies, passedTimeInS);
+        updateAIRocket(gameState.components.players, gameState.components.rockets, gameState.components.bodies);
+        aiCountdown -= passedTimeInS;
+        if (aiCountdown <= 0) {
+          aiCountdown = 1;
+          return updateAI(gameState.components.players, gameState.components.satellites, gameState.components.deathSatellites, gameState.components.repairSatellites, gameState.components.scoreSatellites, gameState.components.rockets, gameState.components.bodies);
+        }
       }
     };
   });
@@ -1448,7 +1643,7 @@
   });
 
   define("Graphics", ["ModifiedRendering", "Camera", "Vec2", "Transform2d"], function(Rendering, Camera, Vec2, Transform2d) {
-    var module, mu, payloadImageIds, playerUI;
+    var module, mu, payloadImageIds, playerUI, winner;
     mu = 5e4;
     playerUI = {
       "redPlayer": {
@@ -1479,6 +1674,7 @@
       "repairSatellite": "images/red-cross.png",
       "scoreSatellite": "images/coin.png"
     };
+    winner = null;
     return module = {
       createRenderState: function() {
         var renderState;
@@ -1488,7 +1684,7 @@
         };
       },
       updateRenderState: function(renderState, gameState) {
-        var a, b, body, color, distance, eccentricity, eccentricityVector, entityId, focalDistance, focalToCenter, imageId, launchText, orientation, player, position, renderable, rocket, rocketId, rotationTransform, satellite, semiMajorAxis, semiMinorAxis, shapeId, speed, tmp, ui, winnerDetermined, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
+        var a, b, body, color, distance, eccentricity, eccentricityVector, entityId, focalDistance, focalToCenter, header, imageId, launchText, orientation, player, position, renderable, rocket, rocketId, rotationTransform, satellite, semiMajorAxis, semiMinorAxis, shapeId, speed, tmp, ui, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
         renderState.camera.position = Vec2.copy(gameState.focus);
         renderState.renderables.length = 0;
         _ref = gameState.components.satellites;
@@ -1628,10 +1824,12 @@
           renderable.position = ui.position;
           renderable.size = [150, 100];
           renderState.renderables.push(renderable);
+          header = player.ai ? "" + ui.header + " (AI)" : ui.header;
           renderable = Rendering.createRenderable("text");
           renderable.position = [ui.position[0] + 10, ui.position[1] + 10];
-          renderable.text = ui.header;
+          renderable.text = header;
           renderable.color = ui.color;
+          renderable.bold = true;
           renderState.renderables.push(renderable);
           renderable = Rendering.createRenderable("text");
           renderable.position = [ui.position[0] + 10, ui.position[1] + 25];
@@ -1660,83 +1858,107 @@
           renderable.color = ui.color;
           renderState.renderables.push(renderable);
           if (gameState.components.rockets[rocketId] != null) {
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 10, ui.position[1] + 60];
-            renderable.text = "" + ui.leftRightKeys;
-            renderable.bold = true;
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 70, ui.position[1] + 60];
-            renderable.text = "for steering";
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 10, ui.position[1] + 75];
-            renderable.text = "" + ui.accelerateKey;
-            renderable.bold = true;
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 70, ui.position[1] + 75];
-            renderable.text = "for acceleration";
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 10, ui.position[1] + 90];
-            renderable.text = "" + ui.deployKey;
-            renderable.bold = true;
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 70, ui.position[1] + 90];
-            renderable.text = "for deployment";
-            renderState.renderables.push(renderable);
+            if (player.ai) {} else {
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 10, ui.position[1] + 60];
+              renderable.text = "" + ui.leftRightKeys;
+              renderable.bold = true;
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 70, ui.position[1] + 60];
+              renderable.text = "for steering";
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 10, ui.position[1] + 75];
+              renderable.text = "" + ui.accelerateKey;
+              renderable.bold = true;
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 70, ui.position[1] + 75];
+              renderable.text = "for acceleration";
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 10, ui.position[1] + 90];
+              renderable.text = "" + ui.deployKey;
+              renderable.bold = true;
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 70, ui.position[1] + 90];
+              renderable.text = "for deployment";
+              renderState.renderables.push(renderable);
+            }
           } else {
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 10, ui.position[1] + 60];
-            renderable.text = "Select payload (use " + ui.payloadKeys + "):";
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("image", "images/skull.png");
-            renderable.position = [ui.position[0] + 60, ui.position[1] + 73];
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("image", "images/red-cross.png");
-            renderable.position = [ui.position[0] + 80, ui.position[1] + 73];
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("image", "images/coin.png");
-            renderable.position = [ui.position[0] + 100, ui.position[1] + 73];
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("hollowRectangle");
-            renderable.position = [ui.position[0] + 52 + (20 * player.selectedIndex), ui.position[1] + 65];
-            renderable.size = [16, 16];
-            renderState.renderables.push(renderable);
-            launchText = player.fuel >= player.minFuel ? "Enough fuel? Press " + ui.launchKey + "!" : "Not enough fuel!";
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [ui.position[0] + 10, ui.position[1] + 95];
-            renderable.text = launchText;
-            renderState.renderables.push(renderable);
+            if (player.ai) {
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 10, ui.position[1] + 60];
+              renderable.text = "Next payload:";
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("image", "images/skull.png");
+              renderable.position = [ui.position[0] + 60, ui.position[1] + 73];
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("image", "images/red-cross.png");
+              renderable.position = [ui.position[0] + 80, ui.position[1] + 73];
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("image", "images/coin.png");
+              renderable.position = [ui.position[0] + 100, ui.position[1] + 73];
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("hollowRectangle");
+              renderable.position = [ui.position[0] + 52 + (20 * player.selectedIndex), ui.position[1] + 65];
+              renderable.size = [16, 16];
+              renderState.renderables.push(renderable);
+            } else {
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 10, ui.position[1] + 60];
+              renderable.text = "Select payload (use " + ui.payloadKeys + "):";
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("image", "images/skull.png");
+              renderable.position = [ui.position[0] + 60, ui.position[1] + 73];
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("image", "images/red-cross.png");
+              renderable.position = [ui.position[0] + 80, ui.position[1] + 73];
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("image", "images/coin.png");
+              renderable.position = [ui.position[0] + 100, ui.position[1] + 73];
+              renderState.renderables.push(renderable);
+              renderable = Rendering.createRenderable("hollowRectangle");
+              renderable.position = [ui.position[0] + 52 + (20 * player.selectedIndex), ui.position[1] + 65];
+              renderable.size = [16, 16];
+              renderState.renderables.push(renderable);
+              launchText = player.fuel >= player.minFuel ? "Press " + ui.launchKey + " to launch!" : "Not enough fuel!";
+              renderable = Rendering.createRenderable("text");
+              renderable.position = [ui.position[0] + 10, ui.position[1] + 95];
+              renderable.text = launchText;
+              renderState.renderables.push(renderable);
+            }
           }
         }
-        winnerDetermined = false;
-        _ref9 = gameState.components.players;
-        _results = [];
-        for (entityId in _ref9) {
-          player = _ref9[entityId];
-          if (player.progress >= player.maxProgress && !winnerDetermined) {
-            winnerDetermined = true;
-            ui = playerUI[entityId];
-            renderable = Rendering.createRenderable("text");
-            renderable.position = [-180, -30];
-            renderable.text = "The winner is:";
-            renderable.font = "bold 50px sans-serif";
-            renderable.color = "rgb(255,255,255)";
-            renderState.renderables.push(renderable);
-            renderable = Rendering.createRenderable("text");
-            renderable.position = ui.winPosition;
-            renderable.text = ui.header;
-            renderable.font = "bold 50px sans-serif";
-            renderable.color = ui.color;
-            _results.push(renderState.renderables.push(renderable));
-          } else {
-            _results.push(void 0);
+        if (winner === null) {
+          _ref9 = gameState.components.players;
+          _results = [];
+          for (entityId in _ref9) {
+            player = _ref9[entityId];
+            if (player.progress >= player.maxProgress) {
+              _results.push(winner = entityId);
+            } else {
+              _results.push(void 0);
+            }
           }
+          return _results;
+        } else {
+          ui = playerUI[winner];
+          renderable = Rendering.createRenderable("text");
+          renderable.position = [-180, -30];
+          renderable.text = "The winner is:";
+          renderable.font = "bold 50px sans-serif";
+          renderable.color = "rgb(255,255,255)";
+          renderState.renderables.push(renderable);
+          renderable = Rendering.createRenderable("text");
+          renderable.position = ui.winPosition;
+          renderable.text = ui.header;
+          renderable.font = "bold 50px sans-serif";
+          renderable.color = ui.color;
+          return renderState.renderables.push(renderable);
         }
-        return _results;
       }
     };
   });
