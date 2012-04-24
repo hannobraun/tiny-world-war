@@ -120,6 +120,30 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 
 		"player": ( args ) ->
 			player =
+				ai: false
+
+				color: args.color
+
+				selectedIndex  : 0
+				selectedPayload: "deathSatellite"
+				justSelected   : false
+
+				progress   : 0
+				maxProgress: 100
+
+				fuel   : 0
+				maxFuel: 80
+				minFuel: 20
+
+			entity =
+				id: "#{ args.color }Player"
+				components:
+					players: player
+
+		"aiPlayer": ( args ) ->
+			player =
+				ai: true
+				
 				color: args.color
 
 				selectedIndex  : 0
@@ -172,30 +196,31 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 			player  = players[ rocket.player ]
 			mapping = inputMappings[ entityId ]
 
-			body.angularVelocity = 0
-			if Input.isKeyDown( currentInput, mapping[ "left" ] )
-				body.angularVelocity = -angularVelocity
-			if Input.isKeyDown( currentInput, mapping[ "right" ] )
-				body.angularVelocity = angularVelocity
+			unless player.ai
+				body.angularVelocity = 0
+				if Input.isKeyDown( currentInput, mapping[ "left" ] )
+					body.angularVelocity = -angularVelocity
+				if Input.isKeyDown( currentInput, mapping[ "right" ] )
+					body.angularVelocity = angularVelocity
 
-			rocket.accelerates = false
-			if Input.isKeyDown( currentInput, mapping[ "up" ] ) && player.fuel > 0
-				force = [ accelerationForce, 0 ]
-				rotationTransform = Transform2d.rotationMatrix( body.orientation )
-				Vec2.applyTransform( force, rotationTransform )
-				body.forces.push( force )
+				rocket.accelerates = false
+				if Input.isKeyDown( currentInput, mapping[ "up" ] ) && player.fuel > 0
+					force = [ accelerationForce, 0 ]
+					rotationTransform = Transform2d.rotationMatrix( body.orientation )
+					Vec2.applyTransform( force, rotationTransform )
+					body.forces.push( force )
 
-				rocket.accelerates = true
+					rocket.accelerates = true
 
-			if Input.isKeyDown( currentInput, mapping[ "down" ] )
-				createEntity( rocket.payload, {
-					position: body.position,
-					velocity: body.velocity,
-					player  : rocket.player } )
-				destroyEntity( entityId )
-				player.fuel = 0
+				if Input.isKeyDown( currentInput, mapping[ "down" ] )
+					createEntity( rocket.payload, {
+						position: body.position,
+						velocity: body.velocity,
+						player  : rocket.player } )
+					destroyEntity( entityId )
+					player.fuel = 0
 
-		for entityId, player of players
+		for entityId, player of players when player.ai isnt true
 			rocketId = "#{ player.color }Rocket"
 			mapping  = inputMappings[ entityId ]
 
@@ -415,8 +440,10 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 
 			createEntity( "player", {
 				color: "red" } )
-			createEntity( "player", {
+			createEntity( "aiPlayer", {
 				color: "green" } )
+			# createEntity( "player", {
+			# 	color: "green" } )
 
 		updateGameState: ( gameState, currentInput, timeInS, passedTimeInS, shapeData ) ->
 			applyInput(
