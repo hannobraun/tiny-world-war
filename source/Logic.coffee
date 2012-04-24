@@ -516,8 +516,8 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 						if scoreSatellites[ entityId ]?
 							numberOfOwnScoreSatellites += 1
 
-				deathSatelliteChance  = 1 * ( numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites*0.5 + numberOfEnemyScoreSatellites*2 )
-				repairSatelliteChance = 1 * ( numberOfOwnDeathSatellites + numberOfOwnScoreSatellites + numberOfEnemyRepairSattelites*0.5 + numberOfEnemyDeathSatellites*2 )
+				deathSatelliteChance  = 1.5 * ( numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites*0.5 + numberOfEnemyScoreSatellites*4 )
+				repairSatelliteChance = 0.5 * ( numberOfOwnDeathSatellites + numberOfOwnScoreSatellites + numberOfEnemyRepairSattelites*0.5 + numberOfEnemyDeathSatellites*2 )
 				scoreSatelliteChance  = 1 * ( 1 + numberOfEnemyScoreSatellites*3 )
 
 				repairSatelliteChance += deathSatelliteChance

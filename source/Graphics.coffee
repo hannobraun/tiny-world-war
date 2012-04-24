@@ -28,6 +28,8 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 		"repairSatellite": "images/red-cross.png"
 		"scoreSatellite" : "images/coin.png"
 
+	winner = null
+
 	module =
 		createRenderState: ->
 			renderState =
@@ -347,28 +349,23 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 						renderable.text = launchText
 						renderState.renderables.push( renderable )
 
-			winnerDetermined = false
-			winner = ""
-			for entityId, player of gameState.components.players
-				winner = player.winner
-				if player.progress >= player.maxProgress && winner == ""
-					winner = entityId
+			if winner == null
+				for entityId, player of gameState.components.players
+					if player.progress >= player.maxProgress
+						winner = entityId
+			else
+				ui = playerUI[ winner ]
 
-					ui = playerUI[ entityId ]
+				renderable = Rendering.createRenderable( "text" )
+				renderable.position = [ -180, -30 ]
+				renderable.text = "The winner is:"
+				renderable.font = "bold 50px sans-serif"
+				renderable.color = "rgb(255,255,255)"
+				renderState.renderables.push( renderable )
 
-					renderable = Rendering.createRenderable( "text" )
-					renderable.position = [ -180, -30 ]
-					renderable.text = "The winner is:"
-					renderable.font = "bold 50px sans-serif"
-					renderable.color = "rgb(255,255,255)"
-					renderState.renderables.push( renderable )
-
-					renderable = Rendering.createRenderable( "text" )
-					renderable.position = ui.winPosition
-					renderable.text = ui.header
-					renderable.font = "bold 50px sans-serif"
-					renderable.color = ui.color
-					renderState.renderables.push( renderable )
-
-			for entityId, player of gameState.components.players
-				player.winner = winner
+				renderable = Rendering.createRenderable( "text" )
+				renderable.position = ui.winPosition
+				renderable.text = ui.header
+				renderable.font = "bold 50px sans-serif"
+				renderable.color = ui.color
+				renderState.renderables.push( renderable )
