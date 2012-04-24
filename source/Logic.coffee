@@ -397,14 +397,70 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 		for entityId in entitiesToDestroy
 			destroyEntity( entityId )
 
-	updateAI = ( players, satellites, deathSatellites, repairSatellites, scoreSatellites, rockets ) ->
+	highOrbitDistance = 190
+	updateAIRocket = ( players, rockets, bodies ) ->
 		aiPlayer = players[ "greenPlayer" ]
 		rocketId = "#{ aiPlayer.color }Rocket"
 		rocket   = rockets[ rocketId ]
 
 		if rocket?
+			body = bodies[ rocketId ]
 
-		else
+			body.orientation = Math.atan2( body.position[ 1 ], body.position[ 0 ] ) + Math.PI/2
+
+			rocket.accelerates = false
+
+			if aiPlayer.nextOrbit == "low"
+				createEntity( rocket.payload, {
+					position: body.position,
+					velocity: body.velocity,
+					player  : rocket.player } )
+				destroyEntity( rocketId )
+				aiPlayer.fuel = 0
+
+			if aiPlayer.nextOrbit == "transfer"
+				if aiPlayer.fuel > 10
+					force = [ accelerationForce, 0 ]
+					rotationTransform = Transform2d.rotationMatrix( body.orientation )
+					Vec2.applyTransform( force, rotationTransform )
+					body.forces.push( force )
+
+					rocket.accelerates = true
+				else
+					createEntity( rocket.payload, {
+						position: body.position,
+						velocity: body.velocity,
+						player  : rocket.player } )
+					destroyEntity( rocketId )
+					aiPlayer.fuel = 0				
+
+			if aiPlayer.nextOrbit == "high"
+				if aiPlayer.fuel > 40
+					force = [ accelerationForce, 0 ]
+					rotationTransform = Transform2d.rotationMatrix( body.orientation )
+					Vec2.applyTransform( force, rotationTransform )
+					body.forces.push( force )
+
+					rocket.accelerates = true
+				else if aiPlayer.fuel > 25 && Vec2.squaredLength( body.position ) > highOrbitDistance*highOrbitDistance
+					force = [ accelerationForce, 0 ]
+					rotationTransform = Transform2d.rotationMatrix( body.orientation )
+					Vec2.applyTransform( force, rotationTransform )
+					body.forces.push( force )
+
+					rocket.accelerates = true
+				else if aiPlayer.fuel <= 25
+					createEntity( rocket.payload, {
+						position: body.position,
+						velocity: body.velocity,
+						player  : rocket.player } )
+					destroyEntity( rocketId )
+					aiPlayer.fuel = 0
+
+	updateAI = ( players, satellites, deathSatellites, repairSatellites, scoreSatellites, rockets, bodies ) ->
+		aiPlayer = players[ "greenPlayer" ]
+
+		unless rockets[ "#{ aiPlayer.color }Rocket" ]?
 			if aiPlayer.nextSatteliteChosen
 				orbitFuelRequirement =
 					"low"     : aiPlayer.minFuel
@@ -481,8 +537,6 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
 				if nextSatellite == "scoreSatellite"
 					aiPlayer.nextOrbit = "high"
-
-				console.log( aiPlayer.nextOrbit )
 
 				aiPlayer.nextSatteliteChosen = true
 
@@ -581,6 +635,11 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 				gameState.components.bodies,
 				passedTimeInS )
 
+			updateAIRocket(
+				gameState.components.players,
+				gameState.components.rockets,
+				gameState.components.bodies )
+
 			aiCountdown -= passedTimeInS
 			if aiCountdown <= 0
 				aiCountdown = 1
@@ -590,4 +649,5 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					gameState.components.deathSatellites,
 					gameState.components.repairSatellites,
 					gameState.components.scoreSatellites,
-					gameState.components.rockets )
+					gameState.components.rockets,
+					gameState.components.bodies )
