@@ -135,9 +135,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 				maxFuel: 80
 				minFuel: 20
 
-				# AI
-				nextSatteliteChosen: false
-				nextOrbit          : "low"
+				winner: ""
 
 			entity =
 				id: "#{ args.color }Player"
@@ -160,6 +158,12 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 				fuel   : 0
 				maxFuel: 80
 				minFuel: 20
+
+				winner: ""
+
+				# AI
+				nextSatteliteChosen: false
+				nextOrbit          : "low"
 
 			entity =
 				id: "#{ args.color }Player"
@@ -274,7 +278,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 			body.forces.push( force )
 
 	fuelBurn = 20
-	fuelGain = 5
+	fuelGain = 2.5
 	manageFuel = ( players, rockets, passedTimeInS ) ->
 		for entityId, player of players
 			rocketId = "#{ player.color }Rocket"

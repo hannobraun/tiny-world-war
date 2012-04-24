@@ -348,9 +348,11 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 						renderState.renderables.push( renderable )
 
 			winnerDetermined = false
+			winner = ""
 			for entityId, player of gameState.components.players
-				if player.progress >= player.maxProgress && !winnerDetermined
-					winnerDetermined = true
+				winner = player.winner
+				if player.progress >= player.maxProgress && winner == ""
+					winner = entityId
 
 					ui = playerUI[ entityId ]
 
@@ -367,3 +369,6 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 					renderable.font = "bold 50px sans-serif"
 					renderable.color = ui.color
 					renderState.renderables.push( renderable )
+
+			for entityId, player of gameState.components.players
+				player.winner = winner
