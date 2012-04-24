@@ -341,7 +341,7 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 						renderState.renderables.push( renderable )
 
 						launchText = if player.fuel >= player.minFuel
-							"Enough fuel? Press #{ ui.launchKey }!"
+							"Press #{ ui.launchKey } to launch!"
 						else
 							"Not enough fuel!"
 						renderable = Rendering.createRenderable( "text" )
