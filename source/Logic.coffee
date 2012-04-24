@@ -137,6 +137,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 
 				# AI
 				nextSatteliteChosen: false
+				nextOrbit          : "low"
 
 			entity =
 				id: "#{ args.color }Player"
@@ -441,6 +442,17 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					aiPlayer.selectedIndex = index
 			if aiPlayer.selectedIndex == -1
 				throw "Invalid index selected."
+
+			if nextSatellite == "deathSatellite"
+				nextOrbit = [ "low", "transfer" ]
+				aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
+			if nextSatellite == "repairSatellite"
+				nextOrbit = [ "low", "transfer" ]
+				aiPlayer.nextOrbit = nextOrbit[ Math.floor( Math.random() * 2 ) ]
+			if nextSatellite == "scoreSatellite"
+				aiPlayer.nextOrbit = "high"
+
+			console.log( aiPlayer.nextOrbit )
 
 			# aiPlayer.nextSatteliteChosen = true
 
