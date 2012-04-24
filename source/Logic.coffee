@@ -135,6 +135,9 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 				maxFuel: 80
 				minFuel: 20
 
+				# AI
+				nextSatteliteChosen: false
+
 			entity =
 				id: "#{ args.color }Player"
 				components:
@@ -393,11 +396,63 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 		for entityId in entitiesToDestroy
 			destroyEntity( entityId )
 
+	updateAI = ( players, satellites, deathSatellites, repairSatellites, scoreSatellites ) ->
+		aiPlayer = players[ "greenPlayer" ]
+		unless aiPlayer.nextSatteliteChosen
+			numberOfEnemyDeathSatellites  = 0
+			numberOfEnemyRepairSattelites = 0
+			numberOfEnemyScoreSatellites  = 0
+
+			numberOfOwnSatellites = 0
+
+			for entityId, satellite of satellites
+				if satellite.player == "redPlayer"
+					if deathSatellites[ entityId ]?
+						numberOfEnemyDeathSatellites += 1
+					if repairSatellites[ entityId ]?
+						numberOfEnemyRepairSattelites += 1
+					if scoreSatellites[ entityId ]?
+						numberOfEnemyScoreSatellites += 1
+				else
+					numberOfOwnSatellites += 1
+
+			deathSatelliteChance  = numberOfEnemyDeathSatellites + numberOfEnemyRepairSattelites + numberOfEnemyScoreSatellites
+			repairSatelliteChance = numberOfOwnSatellites
+			scoreSatelliteChance  = 1 + numberOfEnemyScoreSatellites*3
+
+			repairSatelliteChance += deathSatelliteChance
+			scoreSatelliteChance  += repairSatelliteChance
+
+			r = Math.random() * scoreSatelliteChance
+
+			nextSatellite = if r < deathSatelliteChance
+				"deathSatellite"
+			else if r >= deathSatelliteChance && r < repairSatelliteChance
+				"repairSatellite"
+			else if r >= repairSatelliteChance && r < scoreSatelliteChance
+				"scoreSatellite"
+			else
+				throw "Invalid next satellite selected."
+
+			aiPlayer.selectedPayload = nextSatellite
+			aiPlayer.selectedIndex = -1
+			for payload, index in payloadSelection
+				if payload == nextSatellite
+					aiPlayer.selectedIndex = index
+			if aiPlayer.selectedIndex == -1
+				throw "Invalid index selected."
+
+			# aiPlayer.nextSatteliteChosen = true
+
+
+
 	# There are functions for creating and destroying entities in the Entities
 	# module. We will mostly use shortcuts however. They are declared here and
 	# defined further down in initGameState.
 	createEntity  = null
 	destroyEntity = null
+
+	aiCountdown = 0
 
 	module =
 		createGameState: ->
@@ -481,3 +536,13 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 				gameState.components.repairSatellites,
 				gameState.components.bodies,
 				passedTimeInS )
+
+			aiCountdown -= passedTimeInS
+			if aiCountdown <= 0
+				aiCountdown = 1
+				updateAI(
+					gameState.components.players,
+					gameState.components.satellites,
+					gameState.components.deathSatellites,
+					gameState.components.repairSatellites,
+					gameState.components.scoreSatellites )
