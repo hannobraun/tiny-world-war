@@ -442,14 +442,14 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					body.forces.push( force )
 
 					rocket.accelerates = true
-				else if aiPlayer.fuel > 25 && Vec2.squaredLength( body.position ) > highOrbitDistance*highOrbitDistance
+				else if aiPlayer.fuel > 20 && Vec2.squaredLength( body.position ) > highOrbitDistance*highOrbitDistance
 					force = [ accelerationForce, 0 ]
 					rotationTransform = Transform2d.rotationMatrix( body.orientation )
 					Vec2.applyTransform( force, rotationTransform )
 					body.forces.push( force )
 
 					rocket.accelerates = true
-				else if aiPlayer.fuel <= 25
+				else if aiPlayer.fuel <= 20
 					createEntity( rocket.payload, {
 						position: body.position,
 						velocity: body.velocity,
@@ -485,6 +485,8 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 						orientation: orientation
 						player     : aiPlayer.color,
 						payload    : aiPlayer.selectedPayload } )
+
+					aiPlayer.nextSatteliteChosen = false
 			else
 				numberOfEnemyDeathSatellites  = 0
 				numberOfEnemyRepairSattelites = 0
