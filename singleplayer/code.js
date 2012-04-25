@@ -1139,8 +1139,8 @@
     accelerationForce = 5;
     payloadSelection = ["deathSatellite", "repairSatellite", "scoreSatellite"];
     initialRocketDistance = 50;
-    applyInput = function(currentInput, bodies, rockets, players, createEntity, destroyEntity) {
-      var body, entityId, force, mapping, orbitAngle, orientation, player, position, rocket, rocketId, rotationTransform, velocity, _results;
+    applyInput = function(currentInput, bodies, rockets, players, createEntity, destroyEntity, gameState) {
+      var body, entityId, force, mapping, orbitAngle, orientation, player, position, rocket, rocketId, rotationTransform, velocity;
       for (entityId in rockets) {
         rocket = rockets[entityId];
         body = bodies[entityId];
@@ -1173,7 +1173,6 @@
           }
         }
       }
-      _results = [];
       for (entityId in players) {
         player = players[entityId];
         if (!(player.ai !== true)) continue;
@@ -1199,9 +1198,7 @@
           }
           if (player.justSelected) {
             if (!(Input.isKeyDown(currentInput, mapping["right"]) || Input.isKeyDown(currentInput, mapping["left"]))) {
-              _results.push(player.justSelected = false);
-            } else {
-              _results.push(void 0);
+              player.justSelected = false;
             }
           } else if (Input.isKeyDown(currentInput, mapping["right"]) || Input.isKeyDown(currentInput, mapping["left"])) {
             if (Input.isKeyDown(currentInput, mapping["right"])) {
@@ -1212,15 +1209,13 @@
             }
             player.selectedIndex = (player.selectedIndex + payloadSelection.length) % payloadSelection.length;
             player.selectedPayload = payloadSelection[player.selectedIndex];
-            _results.push(player.justSelected = true);
-          } else {
-            _results.push(void 0);
+            player.justSelected = true;
           }
-        } else {
-          _results.push(void 0);
         }
       }
-      return _results;
+      if (gameState.winner !== null) {
+        if (Input.isKeyDown(currentInput, "enter")) return gameState.reset = true;
+      }
     };
     applyGravity = function(bodies) {
       var body, entityId, force, forceMagnitude, squaredDistance, _results;
@@ -1540,7 +1535,8 @@
       createGameState: function() {
         var gameState;
         return gameState = {
-          focus: [0, 0],
+          winner: null,
+          reset: false,
           components: {
             positions: {},
             bodies: {},
@@ -1575,8 +1571,8 @@
         });
       },
       updateGameState: function(gameState, currentInput, timeInS, passedTimeInS, shapeData) {
-        var collisions;
-        applyInput(currentInput, gameState.components.bodies, gameState.components.rockets, gameState.components.players, createEntity, destroyEntity);
+        var collisions, entityId, player, _ref, _results;
+        applyInput(currentInput, gameState.components.bodies, gameState.components.rockets, gameState.components.players, createEntity, destroyEntity, gameState);
         manageFuel(gameState.components.players, gameState.components.rockets, passedTimeInS);
         applyGravity(gameState.components.bodies);
         Physics.update(gameState.components.bodies, passedTimeInS);
@@ -1588,7 +1584,20 @@
         aiCountdown -= passedTimeInS;
         if (aiCountdown <= 0) {
           aiCountdown = 1;
-          return updateAI(gameState.components.players, gameState.components.satellites, gameState.components.deathSatellites, gameState.components.repairSatellites, gameState.components.scoreSatellites, gameState.components.rockets, gameState.components.bodies);
+          updateAI(gameState.components.players, gameState.components.satellites, gameState.components.deathSatellites, gameState.components.repairSatellites, gameState.components.scoreSatellites, gameState.components.rockets, gameState.components.bodies);
+        }
+        if (gameState.winner === null) {
+          _ref = gameState.components.players;
+          _results = [];
+          for (entityId in _ref) {
+            player = _ref[entityId];
+            if (player.progress >= player.maxProgress) {
+              _results.push(gameState.winner = entityId);
+            } else {
+              _results.push(void 0);
+            }
+          }
+          return _results;
         }
       }
     };
@@ -1633,6 +1642,10 @@
           Logic.updateGameState(gameState, currentInput, timeInS, passedTimeInS, shapeData);
           Graphics.updateRenderState(renderState, gameState);
           Rendering.render(display, renderData, renderState.renderables);
+          if (gameState.reset) {
+            gameState = Logic.createGameState();
+            Logic.initGameState(gameState);
+          }
           return requestAnimFrame(main);
         };
         return main(lastTimeInMs);
@@ -1641,7 +1654,7 @@
   });
 
   define("Graphics", ["ModifiedRendering", "Camera", "Vec2", "Transform2d"], function(Rendering, Camera, Vec2, Transform2d) {
-    var module, mu, payloadImageIds, playerUI, winner;
+    var module, mu, payloadImageIds, playerUI;
     mu = 5e4;
     playerUI = {
       "redPlayer": {
@@ -1672,7 +1685,6 @@
       "repairSatellite": "images/red-cross.png",
       "scoreSatellite": "images/coin.png"
     };
-    winner = null;
     return module = {
       createRenderState: function() {
         var renderState;
@@ -1682,8 +1694,7 @@
         };
       },
       updateRenderState: function(renderState, gameState) {
-        var a, b, body, color, distance, eccentricity, eccentricityVector, entityId, focalDistance, focalToCenter, header, imageId, launchText, orientation, player, position, renderable, rocket, rocketId, rotationTransform, satellite, semiMajorAxis, semiMinorAxis, shapeId, speed, tmp, ui, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, _results;
-        renderState.camera.position = Vec2.copy(gameState.focus);
+        var a, b, body, color, distance, eccentricity, eccentricityVector, entityId, focalDistance, focalToCenter, header, imageId, launchText, orientation, player, position, renderable, rocket, rocketId, rotationTransform, satellite, semiMajorAxis, semiMinorAxis, shapeId, speed, tmp, ui, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8;
         renderState.renderables.length = 0;
         _ref = gameState.components.satellites;
         for (entityId in _ref) {
@@ -1821,6 +1832,7 @@
           renderable = Rendering.createRenderable("rectangle");
           renderable.position = ui.position;
           renderable.size = [150, 100];
+          renderable.color = "rgba(255,255,255,0.5)";
           renderState.renderables.push(renderable);
           header = player.ai ? "" + ui.header + " (AI)" : ui.header;
           renderable = Rendering.createRenderable("text");
@@ -1930,20 +1942,8 @@
             }
           }
         }
-        if (winner === null) {
-          _ref9 = gameState.components.players;
-          _results = [];
-          for (entityId in _ref9) {
-            player = _ref9[entityId];
-            if (player.progress >= player.maxProgress) {
-              _results.push(winner = entityId);
-            } else {
-              _results.push(void 0);
-            }
-          }
-          return _results;
-        } else {
-          ui = playerUI[winner];
+        if (gameState.winner !== null) {
+          ui = playerUI[gameState.winner];
           renderable = Rendering.createRenderable("text");
           renderable.position = [-180, -30];
           renderable.text = "The winner is:";
@@ -1955,6 +1955,12 @@
           renderable.text = ui.header;
           renderable.font = "bold 50px sans-serif";
           renderable.color = ui.color;
+          renderState.renderables.push(renderable);
+          renderable = Rendering.createRenderable("text");
+          renderable.position = [-175, 70];
+          renderable.text = "(press enter to restart)";
+          renderable.font = "bold 30px sans-serif";
+          renderable.color = "rgb(255,255,255)";
           return renderState.renderables.push(renderable);
         }
       }
