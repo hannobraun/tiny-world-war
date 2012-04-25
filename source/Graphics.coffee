@@ -28,8 +28,6 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 		"repairSatellite": "images/red-cross.png"
 		"scoreSatellite" : "images/coin.png"
 
-	winner = null
-
 	module =
 		createRenderState: ->
 			renderState =
@@ -37,9 +35,6 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 				renderables: []
 
 		updateRenderState: ( renderState, gameState ) ->
-			renderState.camera.position = Vec2.copy( gameState.focus )
-
-
 			renderState.renderables.length = 0
 
 			for entityId, satellite of gameState.components.satellites
@@ -349,12 +344,8 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 						renderable.text = launchText
 						renderState.renderables.push( renderable )
 
-			if winner == null
-				for entityId, player of gameState.components.players
-					if player.progress >= player.maxProgress
-						winner = entityId
-			else
-				ui = playerUI[ winner ]
+			unless gameState.winner == null
+				ui = playerUI[ gameState.winner ]
 
 				renderable = Rendering.createRenderable( "text" )
 				renderable.position = [ -180, -30 ]

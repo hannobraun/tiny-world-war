@@ -568,8 +568,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 	module =
 		createGameState: ->
 			gameState =
-				# Change this, if you want the camera to point somewhere else.
-				focus: [ 0, 0 ]
+				winner: null
 
 				# Game entities are made up of components. Those are stored
 				# separately.
@@ -664,3 +663,8 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					gameState.components.scoreSatellites,
 					gameState.components.rockets,
 					gameState.components.bodies )
+
+			if gameState.winner == null
+				for entityId, player of gameState.components.players
+					if player.progress >= player.maxProgress
+						gameState.winner = entityId
