@@ -360,3 +360,10 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 				renderable.font = "bold 50px sans-serif"
 				renderable.color = ui.color
 				renderState.renderables.push( renderable )
+
+				renderable = Rendering.createRenderable( "text" )
+				renderable.position = [ -175, 70 ]
+				renderable.text = "(press enter to restart)"
+				renderable.font = "bold 30px sans-serif"
+				renderable.color = "rgb(255,255,255)"
+				renderState.renderables.push( renderable )
