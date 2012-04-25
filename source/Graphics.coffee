@@ -198,6 +198,7 @@ define "Graphics", [ "ModifiedRendering", "Camera", "Vec2", "Transform2d" ], ( R
 				renderable = Rendering.createRenderable( "rectangle" )
 				renderable.position = ui.position
 				renderable.size = [ 150, 100 ]
+				renderable.color = "rgba(255,255,255,0.5)"
 				renderState.renderables.push( renderable )
 
 				header = if player.ai
