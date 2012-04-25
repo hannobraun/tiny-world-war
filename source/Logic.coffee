@@ -198,7 +198,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 
 	initialRocketDistance = 50
 
-	applyInput = ( currentInput, bodies, rockets, players, createEntity, destroyEntity ) ->
+	applyInput = ( currentInput, bodies, rockets, players, createEntity, destroyEntity, gameState ) ->
 		for entityId, rocket of rockets
 			body    = bodies[ entityId ]
 			player  = players[ rocket.player ]
@@ -264,6 +264,10 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 					player.selectedIndex = ( player.selectedIndex + payloadSelection.length ) % payloadSelection.length
 					player.selectedPayload = payloadSelection[ player.selectedIndex ]
 					player.justSelected = true
+
+		unless gameState.winner == null
+			if Input.isKeyDown( currentInput, "enter" )
+				gameState.reset = true
 
 
 	applyGravity = ( bodies ) ->
@@ -569,6 +573,7 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 		createGameState: ->
 			gameState =
 				winner: null
+				reset : false
 
 				# Game entities are made up of components. Those are stored
 				# separately.
@@ -617,7 +622,8 @@ define "Logic", [ "ModifiedInput", "Entities", "ModifiedPhysics", "Vec2", "Trans
 				gameState.components.rockets,
 				gameState.components.players,
 				createEntity,
-				destroyEntity )
+				destroyEntity,
+				gameState )
 			manageFuel(
 				gameState.components.players,
 				gameState.components.rockets,

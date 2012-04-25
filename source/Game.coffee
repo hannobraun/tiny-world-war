@@ -76,6 +76,10 @@ define "Game", [ "ModifiedRendering", "ModifiedInput", "Logic", "Graphics", "Col
 					renderData,
 					renderState.renderables )
 
+				if gameState.reset
+					gameState = Logic.createGameState()
+					Logic.initGameState( gameState )
+
 				requestAnimFrame( main )
 
 			main( lastTimeInMs )
