@@ -1606,7 +1606,9 @@
   define("Game", ["ModifiedRendering", "ModifiedInput", "Logic", "Graphics", "Collisions"], function(Rendering, Input, Logic, Graphics, Collisions) {
     var module, requestAnimFrame;
     requestAnimFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {
-      return window.setTimeout(callback, 1000 / 60, Date.now());
+      return window.setTimeout(function() {
+        return callback(Date.now());
+      }, 1000 / 60);
     };
     return module = {
       itIsAwesome: true,
