@@ -7,7 +7,10 @@ define "Game", [ "ModifiedRendering", "ModifiedInput", "Logic", "Graphics", "Col
 		window.oRequestAnimationFrame ||
 		window.msRequestAnimationFrame ||
 		( callback ) ->
-			window.setTimeout( callback, 1000 / 60, Date.now() )
+			window.setTimeout(
+				->
+					callback( Date.now() )
+				, 1000 / 60 )
 		
 
 	module =
